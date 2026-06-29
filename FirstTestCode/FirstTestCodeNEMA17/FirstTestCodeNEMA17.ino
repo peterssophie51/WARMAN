@@ -1,7 +1,7 @@
 // define the output pins the arduino is plugged intoi
-#define directionPin 2
-#define stepPin 5
-#define enablePin 9
+#define directionPin 9
+#define stepPin 10
+#define enablePin 8
 #define stepsPerRevolution 200
 
 void setup() {
