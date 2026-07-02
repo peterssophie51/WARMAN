@@ -1,8 +1,8 @@
 // define the output pins the arduino is plugged intoi
 #include "AccelStepper.h"
-#define directionPin 9
-#define stepPin 4
-#define enablePin 7
+#define directionPin 10
+#define stepPin 9
+#define enablePin 11
 #define stepsPerRevolution 200
 const int limitPin = A0;
 int count = 0;
