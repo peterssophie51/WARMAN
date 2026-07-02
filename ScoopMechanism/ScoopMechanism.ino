@@ -14,6 +14,8 @@ int limitHits = 0;
 
 #define motorInterfaceType 1
 
+bool scoopMovedBack = false;
+
 AccelStepper armStepper = AccelStepper(motorInterfaceType, armStepPin, armDirectionPin);
 AccelStepper scoopStepper = AccelStepper(motorInterfaceType, scoopStepPin, scoopDirectionPin);
 
@@ -54,12 +56,20 @@ void loop() {
     armStepper.enableOutputs();
     scoopStepper.enableOutputs();
 
+    if (limitHits == 0) {
+      armStepper.setSpeed(50);
+      armStepper.runSpeed();
+
+      if (scoopMovedBack == false) {
+        scoopStepper.move(-50);
+        scoopMovedBack = true;
+      }
+    }
+
     if (limitState == LOW && limitHits == 0) {
       Serial.println("Hit First Time");
-
       armStepper.move(-50);
       scoopStepper.move(100);
-
       limitHits++;
 
     }
@@ -90,6 +100,7 @@ void loop() {
   } else {
     armStepper.disableOutputs();
     scoopStepper.disableOutputs();
+    scoopMovedBack = false;
   }
 
 }
