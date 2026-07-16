@@ -3,6 +3,9 @@
 #define stepPin 4
 #define enablePin 8
 #define motorInterfaceType 1
+const int stepsPerRevolution = 200;
+const int revolutions = 1;
+long stepsToTake = stepsPerRevolution * revolutions * -1;
 AccelStepper stepper = AccelStepper(motorInterfaceType, stepPin, directionPin);
 
 void setup() {
@@ -15,8 +18,10 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-  stepper.move(400);
-  stepper.run();
-  delay(2000);
+  stepper.moveTo(stepsToTake);
+  stepper.runToPosition();
+
+  stepper.moveTo(0);
+  stepper.runToPosition();
 
 }
