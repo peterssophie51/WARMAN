@@ -26,3 +26,28 @@ void loop() {
     }
   }
 }
+
+/*
+void setup() {
+  pinMode(directionPin, OUTPUT);
+  pinMode(stepPin, OUTPUT);
+  long stepsToMove = rotations * stepsPerRev;
+
+  digitalWrite(directionPin, HIGH);
+  for (int i = 0; i < stepsToMove; i++) {
+    digitalWrite(stepPin, HIGH);
+    delayMicroseconds(3000);
+    digitalWrite(stepPin, LOW);
+    delayMicroseconds(3000);
+  }
+
+  digitalWrite(directionPin, LOW);
+  for (int i = 0; i < stepsToMove; i++) {
+    digitalWrite(stepPin, HIGH);
+    delayMicroseconds(3000);
+    digitalWrite(stepPin, LOW);
+    delayMicroseconds(3000);
+  }
+
+}
+*/
