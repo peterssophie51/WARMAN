@@ -1,16 +1,16 @@
 #include "AccelStepper.h"
-#define directionPin 
-#define stepPin
-#define enablePin
+#define directionPin 10
+#define stepPin 8
+#define enablePin 12
 #define motorInterfaceType 1
 AccelStepper driveStepper = AccelStepper(motorInterfaceType, stepPin, directionPin);
 const int stepsPerRev = 200;
-float rotations = 2;
+float rotations = 5;
 int count = 0;
 
 void setup() {
-  driveStepper.setMaxSpeed(200);
-  driveStepper.setAcceleration(100);
+  driveStepper.setMaxSpeed(50);
+  driveStepper.setAcceleration(25);
   long stepsToMove = rotations * stepsPerRev;
   driveStepper.moveTo(stepsToMove);
 
@@ -18,13 +18,6 @@ void setup() {
 
 void loop() {
   driveStepper.run();
-
-  if (driveStepper.distanceToGo() == 0) {
-    if (count == 0) {
-      driveStepper.moveTo(0);
-      count++;
-    }
-  }
 }
 
 /*
@@ -48,6 +41,10 @@ void setup() {
     digitalWrite(stepPin, LOW);
     delayMicroseconds(3000);
   }
+
+}
+
+void loop() {
 
 }
 */
