@@ -4,13 +4,13 @@
 #define enablePin 12
 #define motorInterfaceType 1
 AccelStepper driveStepper = AccelStepper(motorInterfaceType, stepPin, directionPin);
-const int stepsPerRev = 200;
-float rotations = 5;
+const int stepsPerRev = 400;
+float rotations = 3;
 int count = 0;
 
 void setup() {
-  driveStepper.setMaxSpeed(50);
-  driveStepper.setAcceleration(25);
+  driveStepper.setMaxSpeed(60);
+  driveStepper.setAcceleration(30);
   long stepsToMove = rotations * stepsPerRev;
   driveStepper.moveTo(stepsToMove);
 
