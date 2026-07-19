@@ -3,48 +3,39 @@
 #define stepPin 2
 #define enablePin 4
 #define motorInterfaceType 1
+#define onOffSwitch A0
+
 AccelStepper driveStepper = AccelStepper(motorInterfaceType, stepPin, directionPin);
-const int stepsPerRev = 800;
+
+const int stepsPerRev = 1600;
 float rotations = -2;
-int count = 0;
+long stepsToMove = rotations * stepsPerRev;
+
+enum {stationary, run};
+unsigned char driveState;
 
 void setup() {
-  driveStepper.setMaxSpeed(100);
-  driveStepper.setAcceleration(50);
-  long stepsToMove = rotations * stepsPerRev;
-  driveStepper.moveTo(stepsToMove);
-
+  pinMode(enablePin, OUTPUT);
+  digitalWrite(enablePin, LOW);
+  driveStepper.setMaxSpeed(200);
+  driveStepper.setAcceleration(75);
+  pinMode(onOffSwitch, INPUT_PULLUP);
+  Serial.begin(9600);
 }
 
 void loop() {
-  driveStepper.run();
+  int onOffState = digitalRead(onOffSwitch);
+  if (onOffState == LOW) {
+    Serial.println("On");
+    switch (driveState) {
+      case stationary: 
+        driveStepper.move(stepsToMove);
+        driveState = run;
+        break;
+      case run:
+        break;
+    }
+
+    driveStepper.run();
+  } 
 }
-
-/*
-void setup() {
-  pinMode(directionPin, OUTPUT);
-  pinMode(stepPin, OUTPUT);
-  long stepsToMove = rotations * stepsPerRev;
-
-  digitalWrite(directionPin, HIGH);
-  for (int i = 0; i < stepsToMove; i++) {
-    digitalWrite(stepPin, HIGH);
-    delayMicroseconds(3000);
-    digitalWrite(stepPin, LOW);
-    delayMicroseconds(3000);
-  }
-
-  digitalWrite(directionPin, LOW);
-  for (int i = 0; i < stepsToMove; i++) {
-    digitalWrite(stepPin, HIGH);
-    delayMicroseconds(3000);
-    digitalWrite(stepPin, LOW);
-    delayMicroseconds(3000);
-  }
-
-}
-
-void loop() {
-
-}
-*/
