@@ -11,14 +11,14 @@ const int stepsPerRev = 1600;
 float rotations = -2;
 long stepsToMove = rotations * stepsPerRev;
 
-enum {stationary, run};
+enum {stationary, forwards, backwards, end};
 unsigned char driveState;
 
 void setup() {
   pinMode(enablePin, OUTPUT);
   digitalWrite(enablePin, LOW);
-  driveStepper.setMaxSpeed(200);
-  driveStepper.setAcceleration(75);
+  driveStepper.setMaxSpeed(300);
+  driveStepper.setAcceleration(100);
   pinMode(onOffSwitch, INPUT_PULLUP);
   Serial.begin(9600);
 }
@@ -30,9 +30,19 @@ void loop() {
     switch (driveState) {
       case stationary: 
         driveStepper.move(stepsToMove);
-        driveState = run;
+        driveState = forwards;
         break;
-      case run:
+      case forwards:
+        if (driveStepper.distanceToGo() == 0) {
+          delay(3000);
+          driveState = backwards;
+        }
+        break;
+      case backwards:
+        driveStepper.move(-stepsToMove);
+        driveState = end;
+        break;
+      case end:
         break;
     }
 
