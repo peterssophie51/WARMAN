@@ -1,16 +1,16 @@
 #include "AccelStepper.h"
-#define directionPin 10
-#define stepPin 8
-#define enablePin 12
+#define directionPin 3
+#define stepPin 2
+#define enablePin 4
 #define motorInterfaceType 1
 AccelStepper driveStepper = AccelStepper(motorInterfaceType, stepPin, directionPin);
-const int stepsPerRev = 400;
-float rotations = 3;
+const int stepsPerRev = 800;
+float rotations = -2;
 int count = 0;
 
 void setup() {
-  driveStepper.setMaxSpeed(60);
-  driveStepper.setAcceleration(30);
+  driveStepper.setMaxSpeed(100);
+  driveStepper.setAcceleration(50);
   long stepsToMove = rotations * stepsPerRev;
   driveStepper.moveTo(stepsToMove);
 
