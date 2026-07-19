@@ -15,18 +15,20 @@ enum {stationary, forwards, backwards, end};
 unsigned char driveState;
 
 void setup() {
-  pinMode(enablePin, OUTPUT);
-  digitalWrite(enablePin, LOW);
+  driveStepper.setEnablePin(enablePin);
+  driveStepper.setPinsInverted(false, false, true);
+  driveStepper.disableOutputs();
+
   driveStepper.setMaxSpeed(300);
   driveStepper.setAcceleration(100);
+
   pinMode(onOffSwitch, INPUT_PULLUP);
-  Serial.begin(9600);
 }
 
 void loop() {
   int onOffState = digitalRead(onOffSwitch);
   if (onOffState == LOW) {
-    Serial.println("On");
+    driveStepper.enableOutputs();
     switch (driveState) {
       case stationary: 
         driveStepper.move(stepsToMove);
@@ -45,7 +47,8 @@ void loop() {
       case end:
         break;
     }
-
     driveStepper.run();
-  } 
+  } else {
+    driveStepper.disableOutputs();
+  }
 }
