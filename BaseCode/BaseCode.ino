@@ -1,25 +1,25 @@
 #include "AccelStepper.h"
 
 //ARM STEPPER MOTOR
-#define armDP   //arm direction pin
-#define armEP   //arm enable pin
-#define armSP   //arm step pin
-#define armStepsPerRev   //arm stepper motor steps per revolution 
+#define armDP 9   //arm direction pin
+#define armEP 10   //arm enable pin
+#define armSP 8   //arm step pin
+#define armStepsPerRev 200   //arm stepper motor steps per revolution 
 
-#define driveDP   //drive direction pin
-#define driveEP   //drive enable pin
-#define driveSP   //drive step pin
-#define driveStepsPerRev   //drive stepper motor steps per revolution
+#define driveDP 3     //drive direction pin
+#define driveEP 4   //drive enable pin
+#define driveSP 2   //drive step pin
+#define driveStepsPerRev 1600   //drive stepper motor steps per revolution
 
-#define extrusionDP   //extrusion direction pin
-#define extrusionEP   //extrusion enable pin
-#define extrusionSP   //extrusion step pin
-#define extrusionStepsPerRev   //extrusion stepper motor steps per revolution
+#define extrusionDP 6   //extrusion direction pin
+#define extrusionEP 7   //extrusion enable pin
+#define extrusionSP 5   //extrusion step pin
+#define extrusionStepsPerRev 6400   //extrusion stepper motor steps per revolution
 
-#define scoopDP
-#define scoopEP
-#define scoopSP
-#define scoopStepsPerRev
+#define scoopDP 12   //scoop direction pin
+#define scoopEP 13   //scoop enable pin
+#define scoopSP 11   //scoop step pin
+#define scoopStepsPerRev 200   //scoop stepper motor steps per revolution
 
 #define motorInterfaceType 1
 
@@ -28,25 +28,11 @@ AccelSteper driveStepper = AccelStepper(motorInterfaceType, driveSP, driveDP);
 AccelStepper extrusionStepper = AccelStepper(motorInterfaceType, extrusionSP, extrusionDP);
 AccelStepper scoopStepper = AccelStepper(motorInterfaceType, scoopSP, scoopDP);
 
+enum {stationary, forward, backwards, end};
+unsigned char systemState;
 
 void setup() {
   Serial.begin(9600);
-
-  pinMode(armDP, OUTPUT);
-  pinMode(armEP, OUTPUT);
-  pinMode(armSP, OUTPUT);
-
-  pinMode(driveDP, OUTPUT);
-  pinMode(driveEP, OUTPUT);
-  pinMode(driveSP, OUTPUT);
-
-  pinMode(extrusionDP, OUTPUT);
-  pinMode(extrusionEP, OUTPUT);
-  pinMode(extrusionSP, OUTPUT);
-
-  pinMode(scoopDP, OUTPUT);
-  pinMode(scoopEP, OUTPUT);
-  pinMode(scoopSP, OUTPUT);
 
   armStepper.setEnablePin(armEP);
   driveStepper.setEnablePin(driveEP);
@@ -54,7 +40,14 @@ void setup() {
   scoopStepper.setEnablePin(scoopEP);
 
   armStepper.setPinsInverted(false, false, true);
-  driveStepper.setPinsInverted(false, false, true)
+  driveStepper.setPinsInverted(false, false, true);
+  extrusionStepper.setPinsInverted(false, false, true);
+  scoopStepper.setPinsInverted(false, false, true);
+
+  armStepper.disableOutputs();
+  driveSteppeer.disableOutputs();
+  extrusionStepper.disableOutputs();
+  scoopStepper.disableOutputs();
   
 }
 
@@ -63,22 +56,4 @@ void loop() {
 }
 
 
-//FUNCTION FOR LOWERING THE ARM AND SCOOP TO STARTING POSITION
-void lowerArmToStartPosition() {
 
-}
-
-//FUNCTION TO MOVE THE ARM IN A COLLECTION MOVEMENT
-void collectionArmMovement() {
-
-}
-
-//FUNCTION TO RETURN ARM TO FINAL POSITION
-void moveArmToFinishPosition() {
-
-}
-
-//FUNCTION TO DRIVE SYSTEM
-void drive(direction) {
-
-}
