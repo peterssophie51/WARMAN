@@ -98,23 +98,25 @@ void loop() {
         extrusionStepper.move(extrusionSteps);
         systemState = forward;   //move onto next state
         break;
-      case forward:   //wait for both processes to happen
-        if (driveStepper.distanceToGo() == 0 and extrusionStepper.distanceToGo() == 0) {
-          delay(3000);
-          systemState = backward;
+      case forward:   //once both nema 23 movements triggerred 
+        if (driveStepper.distanceToGo() == 0 and extrusionStepper.distanceToGo() == 0) { //wait for both processes to happen
+          delay(3000); //wait for 3 seconds
+          systemState = backward;  //move onto next state
         }
         break;
       case backward:
-        driveStepper.move(-driveSteps);
+        driveStepper.move(-driveSteps); //move drive and extrusions back in the opposite direction for the same amount
         extrusionStepper.move(-extrusionSteps);
-        systemState = end;
+        systemState = end; //finish the movement
         break;
     }
 
+    //run whatever movement the steppers have programmed to them
     driveStepper.run();
     extrusionStepper.run();
 
   } else {
+    //when switch turned off disable the stepper motors
     driveStepper.disableOutputs();
     extrusionStepper.disableOutputs();
   }
