@@ -1,35 +1,35 @@
 #include "AccelStepper.h"
 
 //ARM 1 NEMA 17
-#define arm1DP 9   //arm 1 direction pin
-#define arm1EP 10   //arm 1 enable pin
-#define arm1SP 8   //arm 1 step pin
+#define arm1DP 11   //arm 1 direction pin
+#define arm1EP 13   //arm 1 enable pin
+#define arm1SP 12   //arm 1 step pin
 const int arm1StepsPerRev = 200;   //arm stepper motor steps per revolution 
 float arm1Revolutions = 1;   //revolutions arm stepper moves through 
 long arm1Steps = arm1StepsPerRev * arm1Revolutions;   //steps for arm stepper motor to take
 
 //ARM 2 NEMA 17
-#define arm2DP 12   //arm 2 direction pin
-#define arm2EP 13   //arm 2 enable pin
-#define arm2SP 11   //arm 2 step pin
+#define arm2DP 2   //arm 2 direction pin
+#define arm2EP 4   //arm 2 enable pin
+#define arm2SP 3   //arm 2 step pin
 const int arm2StepsPerRev = 200;   //arm 2 stepper motor steps per revolution
 float arm2Revolutions = 1;  //revolutions = arm 2 stepper moves through
 long arm2Steps = arm2StepsPerRev * arm2Revolutions;   //steps for arm 2 stepper motor to take
 
 //DRIVE NEMA 23
-#define driveDP 3     //drive direction pin
-#define driveEP 4   //drive enable pin
-#define driveSP 2   //drive step pin
+#define driveDP 5    //drive direction pin
+#define driveEP 7   //drive enable pin
+#define driveSP 6   //drive step pin
 const int driveStepsPerRev = 6400;   //drive stepper motor steps per revolution
-float driveRevolutions = 2;   //revolutions drive stepper moves through
+float driveRevolutions = 10;   //revolutions drive stepper moves through
 long driveSteps = driveStepsPerRev * driveRevolutions * -1;   //steps for drive stepper motor to take
 
 //EXTRUSION NEMA 23
-#define extrusionDP 6   //extrusion direction pin
-#define extrusionEP 7   //extrusion enable pin
-#define extrusionSP 5   //extrusion step pin
+#define extrusionDP 8   //extrusion direction pin
+#define extrusionEP 10   //extrusion enable pin
+#define extrusionSP 9   //extrusion step pin
 const int extrusionStepsPerRev = 6400 ;  //extrusion stepper motor steps per revolution
-float extrusionRevolutions = 2;  //revolutions extrusion stepper moves through
+float extrusionRevolutions =10;  //revolutions extrusion stepper moves through
 long extrusionSteps = extrusionStepsPerRev * extrusionRevolutions;   //steps for extrusion stepper motor to take
 
 #define motorInterfaceType 1 
@@ -77,12 +77,12 @@ void setup() {
   driveStepper.setAcceleration(1000);
 
   //setting drive stepper motor speeds
-  driveStepper.setMaxSpeed(1600);
-  driveStepper.setAcceleration(400);
+  driveStepper.setMaxSpeed(3200);
+  driveStepper.setAcceleration(1200);
 
   //setting extrusion stepper motor speeds
-  extrusionStepper.setMaxSpeed(2000);
-  extrusionStepper.setAcceleration(10000);
+  extrusionStepper.setMaxSpeed(3200);
+  extrusionStepper.setAcceleration(1200);
 
   //setting on/off switch as input
   pinMode(onSwitch, INPUT_PULLUP);
