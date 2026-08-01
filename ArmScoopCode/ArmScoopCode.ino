@@ -1,53 +1,39 @@
-#include "AccelStepper.h"
-#define armEnablePin 10
-#define armStepPin 8
-#define armDirectionPin 9
-#define scoopEnablePin 13
-#define scoopStepPin 11
-#define scoopDirectionPin 12
+#include <AccelStepper.h>
+#include <MultiStepper.h>
+
+#define armStepper1DP 3
+#define armStepper1EP 2
+#define armStepper1SP 4
+
+#define armStepper2DP 10
+#define armStepper2EP 11
+#define armStepper2SP 13                                                     
 
 #define motorInterfaceType 1
-#define onOffSwitch A0
 
-const int armStepsPerRevolution = 200;
-const int scoopStepsPerRevolution = 200;
+AccelStepper armStepper1 = AccelStepper(motorInterfaceType, armStepper1SP, armStepper1DP);
+AccelStepper armStepper2 = AccelStepper(motorInterfaceType, armStepper2SP, armStepper2DP);
 
-AccelStepper armStepper = AccelStepper(motorInterfaceType, armStepPin, armDirectionPin);
-AccelStepper scoopStepper = AccelStepper(motorInterfaceType, scoopStepPin, scoopDirectionPin);
-
-enum {stationary, moved, end};
-unsigned char movedState;
+MultiStepper armSteppers;
 
 void setup() {
-  armStepper.setEnablePin(armEnablePin);
-  armStepper.setPinsInverted(false, false, true);
-  armStepper.disableOutputs();
+  Serial.begin(9600);
 
-  scoopStepper.setEnablePin(scoopEnablePin);
-  scoopStepper.setPinsInverted(false, false, true);
-  scoopStepper.disableOutputs();
+  armStepper1.setMaxSpeed(25);
+  armStepper2.setMaxSpeed(25);
 
-  armStepper.setAcceleration(50);
-  armStepper.setMaxSpeed(100);
+  armSteppers.addStepper(armStepper1);
+  armSteppers.addStepper(armStepper2);
 
-  pinMode(onOffSwitch, INPUT_PULLUP);
 }
 
 void loop() {
-  int onOffState = digitalRead(onOffSwitch);
-  if (onOffState == LOW) {
-    scoopStepper.enableOutputs();
-    switch (movedState) {
-      case stationary:
-        scoopStepper.move(100);
-        movedState = moved;
-        break;
-      case moved:
-        break;
-    }
+  long positions[2];
+  positions[0] = 100;
+  positions[1] = 100;
 
-  } else {
-    scoopStepper.disableOutputs(); // allows a fresh 100-step move next time switch goes LOW
-  }
-  scoopStepper.run();
+  armSteppers.moveTo(positions);
+  armSteppers.runSpeedToPosition();
+  delay(2000);
+
 }
