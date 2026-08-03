@@ -29,7 +29,7 @@ long driveSteps = driveStepsPerRev * driveRevolutions * -1;   //steps for drive 
 #define extrusionEP 10   //extrusion enable pin
 #define extrusionSP 9   //extrusion step pin
 const int extrusionStepsPerRev = 6400 ;  //extrusion stepper motor steps per revolution
-float extrusionRevolutions =10;  //revolutions extrusion stepper moves through
+float extrusionRevolutions = 15;  //revolutions extrusion stepper moves through
 long extrusionSteps = extrusionStepsPerRev * extrusionRevolutions;   //steps for extrusion stepper motor to take
 
 #define motorInterfaceType 1 
@@ -73,16 +73,16 @@ void setup() {
   arm1Stepper.setAcceleration(100);
 
   //setting arm 2 stepper motor speeds
-  driveStepper.setMaxSpeed(2000);
-  driveStepper.setAcceleration(1000);
+  arm2Stepper.setMaxSpeed(200);
+  arm2Stepper.setAcceleration(100);
 
   //setting drive stepper motor speeds
-  driveStepper.setMaxSpeed(3200);
-  driveStepper.setAcceleration(1200);
+  driveStepper.setMaxSpeed(6400);
+  driveStepper.setAcceleration(3200);
 
   //setting extrusion stepper motor speeds
-  extrusionStepper.setMaxSpeed(3200);
-  extrusionStepper.setAcceleration(1200);
+  extrusionStepper.setMaxSpeed(6400);
+  extrusionStepper.setAcceleration(3200);
 
   //setting on/off switch as input
   pinMode(onSwitch, INPUT_PULLUP);
@@ -104,13 +104,8 @@ void loop() {
       case forward:   //once both nema 23 movements triggerred 
         if (driveStepper.distanceToGo() == 0 and extrusionStepper.distanceToGo() == 0) { //wait for both processes to happen
           delay(3000); //wait for 3 seconds
-          systemState = backward;  //move onto next state
+          systemState = end;  //move onto next state
         }
-        break;
-      case backward:
-        driveStepper.move(-driveSteps); //move drive and extrusions back in the opposite direction for the same amount
-        extrusionStepper.move(-extrusionSteps);
-        systemState = end; //finish the movement
         break;
     }
 
