@@ -20,12 +20,13 @@ long arm2Steps = arm2StepsPerRev * arm2Revolutions;   //steps for arm 2 stepper 
 #define motorInterfaceType 1 
 
 #define onSwitch A0   //on/off switch analog pin
-
+#define limitSwitch A1
 
 AccelStepper arm1Stepper = AccelStepper(motorInterfaceType, arm1SP, arm1DP);   //arm 1 stepper motor
 AccelStepper arm2Stepper = AccelStepper(motorInterfaceType, arm2SP, arm2DP);   //arm 2 stepper motor
 
-MultiStepper steppers;
+enum {down, up, finished};
+unsigned char systemState;
 
 void setup() {
   //arm 1 stepper motor enabling
@@ -41,31 +42,55 @@ void setup() {
 
   //setting arm 1 stepper motor speeds
   arm1Stepper.setMaxSpeed(50);
+  arm1Stepper.setSpeed(100);
   arm1Stepper.setAcceleration(10);
 
   //setting arm 2 stepper motor speeds
   arm2Stepper.setMaxSpeed(50);
+  arm2Stepper.setSpeed(100);
   arm2Stepper.setAcceleration(10);
-
-  steppers.addStepper(arm1Stepper);
-  steppers.addStepper(arm2Stepper);
 
   //setting on/off switch as input
   pinMode(onSwitch, INPUT_PULLUP);
+  pinMode(limitSwitch, INPUT_PULLUP);
+  Serial.begin(9600);
 
 }
 
+
 void loop() {
    int onState = digitalRead(onSwitch);  //read for switch inputs
+   int limitState = digitalRead(limitSwitch); //read for limit switch inputs
 
   if (onState == LOW) {
     arm1Stepper.enableOutputs();
     arm2Stepper.enableOutputs();
-    long positions[2];
-    positions[0] = 100;
-    positions[1]= -100;
-    steppers.moveTo(positions);
-    steppers.runSpeedToPosition();
+    switch (systemState) {
+      case down:
+        arm1Stepper.move(-50);
+        arm2Stepper.move(50);
+        Serial.println("Moving");
+        if (limitState == LOW) {
+          systemState = up;
+          Serial.println("Hit");
+          arm1Stepper.move(0);
+          arm1Stepper.setSpeed(0);
+          arm1Stepper.runSpeed();
+          arm2Stepper.move(0);
+          arm2Stepper.setSpeed(0);
+          arm2Stepper.runSpeed();
+        }
+        break;
+      case up:
+        Serial.println("Stopped");
+        arm1Stepper.stop();
+        arm2Stepper.stop();
+        break;
+    }
+    arm1Stepper.run();
+    arm2Stepper.run();
+  
+
 
   } else {
     arm1Stepper.disableOutputs();
