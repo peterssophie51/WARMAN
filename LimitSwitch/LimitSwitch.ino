@@ -1,4 +1,4 @@
-const int limitPin = A1;   // D2
+const int limitPin = A5;   // D2
 int count = 0;
 
 void setup() {

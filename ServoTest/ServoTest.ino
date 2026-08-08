@@ -1,10 +1,6 @@
 #include <Servo.h>
 #include <AccelStepper.h>
 
-Servo servo;
-int pos = 0;
-#define onSwitch A0
-
 //ARM 1 NEMA 17
 #define arm1DP 11   //arm 1 direction pin
 #define arm1EP 13   //arm 1 enable pin
@@ -21,8 +17,10 @@ const int arm2StepsPerRev = 200;   //arm 2 stepper motor steps per revolution
 float arm2Revolutions = 1;  //revolutions = arm 2 stepper moves through
 long arm2Steps = arm2StepsPerRev * arm2Revolutions;   //steps for arm 2 stepper motor to take
 
-#define motorInterfaceType 1 
+#define motorInterfaceType 1
+#define onSwitch A0
 
+Servo scoopServo;
 AccelStepper arm1Stepper = AccelStepper(motorInterfaceType, arm1SP, arm1DP);   //arm 1 stepper motor
 AccelStepper arm2Stepper = AccelStepper(motorInterfaceType, arm2SP, arm2DP);   //arm 2 stepper motor
 
@@ -30,39 +28,20 @@ enum {on, off};
 unsigned char systemState;
 
 void setup() {
-  servo.attach(A3);
-  servo.write(0);
-  Serial.begin(9600);
-  pinMode(onSwitch, INPUT_PULLUP);
-
-  //arm 1 stepper motor enabling
-  arm1Stepper.setEnablePin(arm1EP);
-  arm1Stepper.setPinsInverted(false, false, true);
-  arm1Stepper.disableOutputs();
-
-  //arm 2 stepper motor enabling
-  arm2Stepper.setEnablePin(arm2EP);
-  arm2Stepper.setPinsInverted(false, false, true);
-  arm2Stepper.disableOutputs();
-
+  scoopServo.attach(A2);
+  scoopServo.write(0);
 }
 
 void loop() {
   arm1Stepper.disableOutputs();
   arm2Stepper.disableOutputs();
-  int onState = digitalRead(onSwitch);
-  if (onState == LOW) {
-    switch (systemState) {
-      case on: 
-        for (pos = 0; pos <= 10; pos += 1) {
-          servo.write(pos);
-          delay(300);
-        }
-        systemState = off;
-        break;
-      case off: 
-        break;
-    }
-  
+  slowServoMovement(scoopServo, 0, 180, 15)
+
+}
+
+void slowServoMovement(Servo &servo, int startAngle, int endEngle, int stepDelay) {
+  for (int pos = startAngle; pos <= endAngle; pos++) {
+    servo.write(pos);
+    delay(stepDelay);
   }
 }
