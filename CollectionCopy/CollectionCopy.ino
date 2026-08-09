@@ -1,5 +1,5 @@
 #include <AccelStepper.h>
-#include <Servo.h>
+#include <VarSpeedServo.h>
 
 //ARM 1 NEMA 17
 #define arm1DP 11   //arm 1 direction pin
@@ -22,11 +22,10 @@ const int armSpeed = 30;
 
 #define scoopPin A2
 int scoopCount = 0;
-int servoCount = 0;
 
 AccelStepper arm1Stepper = AccelStepper(motorInterfaceType, arm1SP, arm1DP);   //arm 1 stepper motor
 AccelStepper arm2Stepper = AccelStepper(motorInterfaceType, arm2SP, arm2DP);   //arm 2 stepper motor
-Servo scoopServo;
+VarSpeedServo scoopServo;
 
 enum {rotatingDown, halfUp, halfDown, rotatingUp, end};
 unsigned char collectionState;
@@ -56,7 +55,7 @@ void setup() {
   arm2Stepper.setAcceleration(10);
 
   scoopServo.attach(scoopPin);
-  scoopServo.write(0);
+  scoopServo.write(0, 150, true);
   
   pinMode(onSwitch, INPUT_PULLUP);
   pinMode(collectionLimitSwitch, INPUT_PULLUP);
@@ -81,15 +80,14 @@ void loop() {
         if (collectionLimitState == LOW) {
           arm1Stepper.setSpeed(0);
           arm2Stepper.setSpeed(0);
-          scoopServo.write(0);
           collectionState = halfUp;
         }
         break;
       case halfUp:
         if (collectionState != prevState) {
-          scoopCount = 1;
           arm1Stepper.move(-armSteps);
           arm2Stepper.move(-armSteps);
+          scoopServo.write(180, 8, false);
           prevState = collectionState;
         }
         if (arm1Stepper.distanceToGo() == 0 and arm2Stepper.distanceToGo() == 0) {
@@ -112,6 +110,12 @@ void loop() {
       case rotatingUp:
         arm1Stepper.setSpeed(-armSpeed);
         arm2Stepper.setSpeed(-armSpeed);
+        /*
+        if (collectionState != prevState) {
+          scoopServo.goTo(0.8);
+          prevState = collectionState;
+        }
+        */
         if (armLimitState == LOW) {
           arm1Stepper.setSpeed(0);
           arm2Stepper.setSpeed(0);
@@ -131,16 +135,6 @@ void loop() {
       arm2Stepper.runSpeed();
     }
 
-    if (scoopCount == 1) {
-      if (servoCount < 180) {
-        scoopServo.write(servoCount);
-        delay(50);
-        servoCount++;
-      } else {
-        scoopCount++;
-      }
-    }
-    
   
   } else {
     arm1Stepper.disableOutputs();
