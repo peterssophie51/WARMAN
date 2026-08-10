@@ -21,7 +21,6 @@ const int armSpeed = 30;
 #define armLimitSwitch A3
 
 #define scoopPin A2
-int scoopCount = 0;
 
 AccelStepper arm1Stepper = AccelStepper(motorInterfaceType, arm1SP, arm1DP);   //arm 1 stepper motor
 AccelStepper arm2Stepper = AccelStepper(motorInterfaceType, arm2SP, arm2DP);   //arm 2 stepper motor
@@ -108,14 +107,11 @@ void loop() {
         }
         break;
       case rotatingUp:
+        if (collectionState != prevState) {
+          scoopServo.write(160, 5, false);
+        }
         arm1Stepper.setSpeed(-armSpeed);
         arm2Stepper.setSpeed(-armSpeed);
-        /*
-        if (collectionState != prevState) {
-          scoopServo.goTo(0.8);
-          prevState = collectionState;
-        }
-        */
         if (armLimitState == LOW) {
           arm1Stepper.setSpeed(0);
           arm2Stepper.setSpeed(0);

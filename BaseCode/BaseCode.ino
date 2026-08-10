@@ -22,10 +22,12 @@ long arm2Steps = arm2StepsPerRev * arm2Revolutions;   //steps for arm 2 stepper 
 #define driveEP 7   //drive enable pin
 #define driveSP 6   //drive step pin
 const int driveStepsPerRev = 6400;   //drive stepper motor steps per revolution
-float driveRevolutions = 10;   //revolutions drive stepper moves through
+float driveRevolutions = 8;   //revolutions drive stepper moves through
 long driveSteps = driveStepsPerRev * driveRevolutions * -1;   //steps for drive stepper motor to take
 const int driveSpeed = 6400;  //drive speed (steps per second)
 const int driveAcceleration = 3200;  //drive acceleration (steps per second per second)
+float furtherDriveRevolutions = 2;
+long furtherDriveSteps = driveStepsPerRev * furtherDriveRevolutions;
 
 //EXTRUSION NEMA 23
 #define extrusionDP 8   //extrusion direction pin
@@ -55,7 +57,7 @@ AccelStepper arm2Stepper = AccelStepper(motorInterfaceType, arm2SP, arm2DP);   /
 AccelStepper driveStepper = AccelStepper(motorInterfaceType, driveSP, driveDP);   //drive stepper motor
 AccelStepper extrusionStepper = AccelStepper(motorInterfaceType, extrusionSP, extrusionDP);   //extrusion stepper motor
 
-enum {stationary, forward, backward, end};   //system states
+enum {stationary, forward, further, backward, end};   //system states
 unsigned char systemState;   //state to track system state
 
 #define onSwitch A0   //on/off switch analog pin
@@ -121,10 +123,13 @@ void loop() {
         break;
       case forward:   //once both nema 23 movements triggerred 
         if (driveStepper.distanceToGo() == 0 and extrusionStepper.distanceToGo() == 0) { //wait for both processes to happen
-          delay(3000); //wait for 3 seconds
-          systemState = end;  //move onto next state
+          delay(2000); //wait for 3 seconds
+          systemState = further;  //move onto next state
         }
         break;
+      case further:
+        driveStepper.move(furtherDriveSteps);
+        systemState = end;
       case end:
         break;
     }
