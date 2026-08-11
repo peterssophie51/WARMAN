@@ -13,7 +13,7 @@
 
 const int armStepsPerRev = 1600; //arm stepper motor steps per revolution
 const int armDownSteps = armStepsPerRev * 0.95;  //CHANGES THE ROTATION OF THE ARNMS DOWN TILL IT GETS TO THE BOX
-const int armHalfSteps = armStepsPerRev * 0.22;
+const int armHalfSteps = armStepsPerRev * 0.23;
 const int armSpeed = 240; // CHANGES THE SPEED OF THE ARMS 
 const int armAcceleration = 200;
 
@@ -121,86 +121,91 @@ void loop() {
   }
 
   if (onPresses > 0) {
-    case rotatingDown:  
-      digitalWrite(ledPin, HIGH);
-      if (systemState != prevState) {
-        arm1Stepper.enableOutputs();
-        arm2Stepper.enableOutputs();
-        driveStepper.disableOutputs();
-        extrusionStepper.disableOutputs();
-        arm1Stepper.move(armDownSteps);
-        arm2Stepper.move(armDownSteps);
-        prevState = systemState;
-      }
-      if (arm1Stepper.distanceToGo() == 0 and arm2Stepper.distanceToGo() == 0) {
-        systemState = halfUp;
-      }
-      break;
-    case halfUp: 
-      if (systemState != prevState) {
-        arm1Stepper.move(-armHalfSteps);
-        arm2Stepper.move(-armHalfSteps);
-        scoopServo.write(170, 8.5, false); //CHANGES THE SPEED AND ROTATION OF THE SERVO WHEN ROTATING AROUND
-        prevState = systemState;
-      }
-      if (arm1Stepper.distanceToGo() == 0 and arm2Stepper.distanceToGo() == 0) {
-        systemState = halfDown;
-      }
-      break;
-    case halfDown:
-      arm1Stepper.setSpeed(armSpeed);
-      arm2Stepper.setSpeed(armSpeed);
-      if (collectionLimitState == LOW) {
-        arm1Stepper.setSpeed(0);
-        arm2Stepper.setSpeed(0);
-        systemState = pickRocks; //CHANGES THE SPEED AND ROTATION OF THE SERVO WHEN ROTATING THE EXTRA BIT AROUND
-      }
-      break;
-    case pickRocks:
-      scoopServo.write(180, 8, true); //CHANGES THE
-      systemState = rotatingUp;
-      break;
-    case rotatingUp:
-      scoopServo.write(120, 5, false);
-      arm1Stepper.setSpeed(-armSpeed);
-      arm2Stepper.setSpeed(-armSpeed);
-      if (armLimitState == LOW) {
-        arm1Stepper.setSpeed(0);
-        arm2Stepper.setSpeed(0);
-        scoopServo.write(180, 6, false);
-        systemState = end;
-      }
-      break;
+    
+    switch (systemState) {
+      case rotatingDown:  
+        digitalWrite(ledPin, HIGH);
+        if (systemState != prevState) {
+          arm1Stepper.enableOutputs();
+          arm2Stepper.enableOutputs();
+          driveStepper.disableOutputs();
+          extrusionStepper.disableOutputs();
+          arm1Stepper.move(armDownSteps);
+          arm2Stepper.move(armDownSteps);
+          prevState = systemState;
+        }
+        if (arm1Stepper.distanceToGo() == 0 and arm2Stepper.distanceToGo() == 0) {
+          systemState = halfUp;
+        }
+        break;
+      case halfUp: 
+        if (systemState != prevState) {
+          arm1Stepper.move(-armHalfSteps);
+          arm2Stepper.move(-armHalfSteps);
+          scoopServo.write(170, 8.5, false); //CHANGES THE SPEED AND ROTATION OF THE SERVO WHEN ROTATING AROUND
+          prevState = systemState;
+        }
+        if (arm1Stepper.distanceToGo() == 0 and arm2Stepper.distanceToGo() == 0) {
+          systemState = halfDown;
+        }
+        break;
+      case halfDown:
+        arm1Stepper.setSpeed(armSpeed);
+        arm2Stepper.setSpeed(armSpeed);
+        if (collectionLimitState == LOW) {
+          arm1Stepper.setSpeed(0);
+          arm2Stepper.setSpeed(0);
+          systemState = pickRocks; //CHANGES THE SPEED AND ROTATION OF THE SERVO WHEN ROTATING THE EXTRA BIT AROUND
+        }
+        break;
+      case pickRocks:
+        scoopServo.write(180, 8, true); //CHANGES THE
+        systemState = rotatingUp;
+        break;
+      case rotatingUp:
+        scoopServo.write(120, 5, false);
+        arm1Stepper.setSpeed(-armSpeed);
+        arm2Stepper.setSpeed(-armSpeed);
+        if (armLimitState == LOW) {
+          arm1Stepper.setSpeed(0);
+          arm2Stepper.setSpeed(0);
+          scoopServo.write(180, 6, false);
+          delay(2000);
+          systemState = endScoop;
+        }
+        break;
 
-    case endScoop:
-      scoopServo.write(0, 5, true);
-      arm1Stepper.disableOutputs();
-      arm2Stepper.disableOutputs();
-      extrusionStepper.enableOutputs();
-      driveStepper.enableOutputs();
-      systemState = stationary;
-      break;
-    case stationary:
-      extrusionStepper.move(extrusionSteps);
-      driveStepper.move(driveSteps);
-      systemState = forward;
-      break;
-    case forward:
-      if (driveStepper.distanceToGo() == 0 and extrusionStepper.distanceToGo() == 0) {
-        systemState = further
-      }
-      break;
-    case further:
-      driveStepper.move(furtherDriveSteps);
-      systemState = retract;
-      break;
-    case retract:
-      if (driveStepper.distanceToGo() == 0 and extrusionStepper.distanceToGo() == 0) {
-        driveStepper.move(-driveSteps);
-        extrusionSteps.move(-extrusionSteps);
-        systemState = end;
-      }
-    case end:
+      case endScoop:
+        scoopServo.write(100, 5, false);
+        arm1Stepper.disableOutputs();
+        arm2Stepper.disableOutputs();
+        extrusionStepper.enableOutputs();
+        driveStepper.enableOutputs();
+        systemState = stationary;
+        break;
+      case stationary:
+        extrusionStepper.move(extrusionSteps);
+        driveStepper.move(driveSteps);
+        systemState = forward;
+        break;
+      case forward:
+        if (driveStepper.distanceToGo() == 0 and extrusionStepper.distanceToGo() == 0) {
+          systemState = further;
+        }
+        break;
+      case further:
+        driveStepper.move(furtherDriveSteps);
+        systemState = retract;
+        break;
+      case retract:
+        if (driveStepper.distanceToGo() == 0 and extrusionStepper.distanceToGo() == 0) {
+          delay(1000);
+          driveStepper.move(-driveSteps);
+          extrusionStepper.move(-extrusionSteps);
+          systemState = end;
+        }
+        break;
+      case end:
       if (driveStepper.distanceToGo() == 0 and extrusionStepper.distanceToGo() == 0) {
         driveStepper.disableOutputs();
         extrusionStepper.disableOutputs();
@@ -208,9 +213,10 @@ void loop() {
       }
       break;
     
+    }
   }
   
-  if (systemState == rotatingDown or collectionState == halfUp) {
+  if (systemState == rotatingDown or systemState == halfUp) {
     arm1Stepper.run();
     arm2Stepper.run();
   } else if (systemState == stationary or systemState == forward or systemState == further or systemState == retract or systemState == end) {
