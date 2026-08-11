@@ -3,7 +3,12 @@
 #define stepPin 5
 #define enablePin 7
 #define motorInterfaceType 1
+
 #define onOffSwitch A0
+int lastReading = HIGH;
+int buttonState = HIGH;
+unsigned long lastDebounceTime = 0;
+const unsigned long debounceDelay = 50;
 
 const int stepsPerRevolution = 6400;
 float revolutions = 1;

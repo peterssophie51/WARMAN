@@ -26,15 +26,16 @@ float driveRevolutions = 8;   //revolutions drive stepper moves through
 long driveSteps = driveStepsPerRev * driveRevolutions * -1;   //steps for drive stepper motor to take
 const int driveSpeed = 6400;  //drive speed (steps per second)
 const int driveAcceleration = 3200;  //drive acceleration (steps per second per second)
-float furtherDriveRevolutions = 2;
-long furtherDriveSteps = driveStepsPerRev * furtherDriveRevolutions;
+float furtherDriveRevolutions = 2.15;
+long furtherDriveSteps = driveStepsPerRev * furtherDriveRevolutions * -1;
+long retractSteps = furtherDriveSteps + driveSteps;
 
 //EXTRUSION NEMA 23
 #define extrusionDP 8   //extrusion direction pin
 #define extrusionEP 10   //extrusion enable pin
 #define extrusionSP 9   //extrusion step pin
 const int extrusionStepsPerRev = 6400 ;  //extrusion stepper motor steps per revolution
-float extrusionRevolutions = 32;  //revolutions extrusion stepper moves through
+float extrusionRevolutions = 22.5;  //revolutions extrusion stepper moves through
 long extrusionSteps = extrusionStepsPerRev * extrusionRevolutions;   //steps for extrusion stepper motor to take
 const int extrusionSpeed = 6400;  //extrusion speed (steps per second)
 const int extrusionAcceleration = 3200;  //extrusion acceleration (steps per second per second)
@@ -45,6 +46,7 @@ const int scoopSpeed = 5;
 
 //SET SWITCHES
 #define onSwitch A0
+float onPresses = 0;
 #define collectionLimitSwitch A5
 #define armLimitSwitch A3
 
@@ -57,7 +59,7 @@ AccelStepper arm2Stepper = AccelStepper(motorInterfaceType, arm2SP, arm2DP);   /
 AccelStepper driveStepper = AccelStepper(motorInterfaceType, driveSP, driveDP);   //drive stepper motor
 AccelStepper extrusionStepper = AccelStepper(motorInterfaceType, extrusionSP, extrusionDP);   //extrusion stepper motor
 
-enum {stationary, forward, further, backward, end};   //system states
+enum {stationary, forward, further, retract, end};   //system states
 unsigned char systemState;   //state to track system state
 
 #define onSwitch A0   //on/off switch analog pin
@@ -112,6 +114,11 @@ void loop() {
   int onState = digitalRead(onSwitch);  //read for switch inputs
 
   if (onState == LOW) {
+    onPresses++;
+  }
+
+  if (onPresses > 0) {
+
     driveStepper.enableOutputs();   //enable drive stepper
     extrusionStepper.enableOutputs();   //enable extrusion stepper
     
@@ -129,6 +136,14 @@ void loop() {
         break;
       case further:
         driveStepper.move(furtherDriveSteps);
+        if (driveStepper.distanceToGo() == 0) {
+          delay(1000);
+          systemState = retract;
+        }
+        break;
+      case retract:
+        driveStepper.move(-retractSteps);
+        extrusionStepper.move(-extrusionSteps);
         systemState = end;
       case end:
         break;

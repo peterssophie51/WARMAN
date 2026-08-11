@@ -11,13 +11,15 @@
 #define arm2EP 4   //arm 2 enable pin
 #define arm2SP 3   //arm 2 step pin
 
-const int armStepsPerRev = 200; //arm stepper motor steps per revolution
-const int armSteps = 50;
-const int armSpeed = 30;
+const int armStepsPerRev = 1600; //arm stepper motor steps per revolution
+const int armDownSteps = armStepsPerRev * 0.5;  //CHANGES THE ROTATION OF THE ARNMS DOWN TILL IT GETS TO THE BOX
+const int armHalfSteps = armStepsPerRev * 0.3;
+const int armSpeed = 240; // CHANGES THE SPEED OF THE ARMS 
 
 #define motorInterfaceType 1
 #define onSwitch A0
 float onPresses = 0;
+
 #define collectionLimitSwitch A5
 #define armLimitSwitch A3
 #define scoopPin A2
@@ -29,7 +31,7 @@ VarSpeedServo scoopServo;
 
 enum {rotatingDown, halfUp, halfDown, rotatingUp, end};
 unsigned char collectionState;
-unsigned char prevState = 0;
+unsigned char prevState = 1;
 
 void setup() {
   Serial.begin(9600);
@@ -47,15 +49,15 @@ void setup() {
   //setting arm 1 stepper motor speeds
   arm1Stepper.setMaxSpeed(armSpeed);
   arm1Stepper.setSpeed(armSpeed);
-  arm1Stepper.setAcceleration(10);
+  arm1Stepper.setAcceleration(200);
 
   //setting arm 2 stepper motor speeds
   arm2Stepper.setMaxSpeed(armSpeed);
   arm2Stepper.setSpeed(armSpeed);
-  arm2Stepper.setAcceleration(10);
+  arm2Stepper.setAcceleration(200);
 
   scoopServo.attach(scoopPin);
-  scoopServo.write(0, 150, true);
+  scoopServo.write(0, 180, true);
   
   pinMode(onSwitch, INPUT_PULLUP);
   pinMode(collectionLimitSwitch, INPUT_PULLUP);
@@ -64,88 +66,71 @@ void setup() {
 }
 
 void loop() {
+
   int onState = digitalRead(onSwitch);
   int collectionLimitState = digitalRead(collectionLimitSwitch);
   int armLimitState = digitalRead(armLimitSwitch);
 
-  if (onState == LOW) {
-    onPresses++;
-  }
 
-  if (onPresses > 0) {
+  if (onState == LOW) {
     arm1Stepper.enableOutputs();
     arm2Stepper.enableOutputs();
 
     switch (collectionState) {
-
       case rotatingDown:
-        arm1Stepper.setSpeed(armSpeed);
-        arm2Stepper.setSpeed(armSpeed);
-        if (collectionLimitState == LOW) {
-          arm1Stepper.setSpeed(0);
-          arm2Stepper.setSpeed(0);
+        if (collectionState != prevState) {
+          arm1Stepper.move(armDownSteps);
+          arm2Stepper.move(armDownSteps);
+          prevState = collectionState;
+        }
+        if (arm1Stepper.distanceToGo() == 0 and arm2Stepper.distanceToGo() == 0) {
           collectionState = halfUp;
         }
         break;
-      case halfUp:
+      case halfUp: 
         if (collectionState != prevState) {
-          arm1Stepper.move(-armSteps);
-          arm2Stepper.move(-armSteps);
-          scoopServo.write(90, 8.5, false);
+          arm1Stepper.move(-armHalfSteps);
+          arm2Stepper.move(-armHalfSteps);
+          scoopServo.write(160, 8.5, false); //CHANGES THE SPEED AND ROTATION OF THE SERVO WHEN ROTATING AROUND
           prevState = collectionState;
         }
         if (arm1Stepper.distanceToGo() == 0 and arm2Stepper.distanceToGo() == 0) {
           collectionState = halfDown;
         }
         break;
-      
-      case halfDown: {
-        if (collectionState != prevState) {
-          arm1Stepper.setSpeed(35);
-          arm2Stepper.setSpeed(35);
-          scoopServo.write(180, 8, false);
-          arm1Stepper.move(armSteps);
-          arm2Stepper.move(armSteps);
-          prevState = collectionState;
-        }
-        int currentAngle = scoopServo.read();
-        Serial.println(currentAngle);
-        float distanceToGo = abs(180 - currentAngle);
-        if (arm1Stepper.distanceToGo() == 0 and arm2Stepper.distanceToGo() == 0 and distanceToGo == 0) {
-          collectionState = rotatingUp;
+      case halfDown:
+        arm1Stepper.setSpeed(armSpeed);
+        arm2Stepper.setSpeed(armSpeed);
+        if (collectionLimitState == LOW) {
+          arm1Stepper.setSpeed(0);
+          arm2Stepper.setSpeed(0);
+          collectionState = rotatingUp; //CHANGES THE SPEED AND ROTATION OF THE SERVO WHEN ROTATING THE EXTRA BIT AROUND
         }
         break;
-      }
       case rotatingUp:
-        if (collectionState != prevState) {
-          scoopServo.write(flatteningDegrees, 5, false);
-          prevState = collectionState;
-        }
+        scoopServo.write(180, 5, true); //CHANGES THE
+
         arm1Stepper.setSpeed(-armSpeed);
         arm2Stepper.setSpeed(-armSpeed);
         if (armLimitState == LOW) {
           arm1Stepper.setSpeed(0);
           arm2Stepper.setSpeed(0);
           collectionState = end;
-                  }
+        }
         break;
       case end:
         arm1Stepper.disableOutputs();
         arm2Stepper.disableOutputs();
+        break;
     }
 
-    if (collectionState == halfUp || collectionState == halfDown) {
+    if (collectionState == rotatingDown or collectionState == halfUp) {
       arm1Stepper.run();
       arm2Stepper.run();
     } else {
       arm1Stepper.runSpeed();
       arm2Stepper.runSpeed();
     }
-
-  
-  } else {
-    arm1Stepper.disableOutputs();
-    arm2Stepper.disableOutputs();
   }
-
 }
+  

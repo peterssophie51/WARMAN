@@ -1,6 +1,6 @@
 #include "AccelStepper.h"
 #include "Servo.h"
-#include "SlowMotionServo.h"
+#include "VarSpeedServo.h"
 
 //ARM 1 NEMA 17
 #define arm1DP 11   //arm 1 direction pin
@@ -15,7 +15,7 @@
 //ARM STEPPER VARIABLES
 const int armStepsPerRev = 200;
 const int armSteps = 50;
-const int armSpeed = 20;
+const int armSpeed = 30;
 
 //DRIVE NEMA 23
 #define driveDP 5    //drive direction pin
@@ -40,6 +40,8 @@ const int extrusionAcceleration = 3200;  //extrusion acceleration (steps per sec
 //SCOOP SERVO 
 #define scoopPin A2
 const int scoopSpeed = 5;
+const int flatteningDegree = 160;
+const int flatteningSpeed = 5;
 
 //SET SWITCHES
 #define onSwitch A0
@@ -54,11 +56,11 @@ AccelStepper arm1Stepper = AccelStepper(motorInterfaceType, arm1SP, arm1DP);   /
 AccelStepper arm2Stepper = AccelStepper(motorInterfaceType, arm2SP, arm2DP);   //arm 2 stepper motor
 AccelStepper driveStepper = AccelStepper(motorInterfaceType, driveSP, driveDP);   //drive stepper motor
 AccelStepper extrusionStepper = AccelStepper(motorInterfaceType, extrusionSP, extrusionDP);   //extrusion stepper motor
-SMSLinear scoopServo;
+VarSpeedServo scoopServo;
 
 enum {rotatingDown, halfUp, halfDown, rotatingUp, stationary, forward, backward, end};   //system states
 unsigned char systemState;   //state to track system state
-unsigned char prevState = 0;
+unsigned char prevState = 0; //previous state to track one time calls
 
 #define onSwitch A0   //on/off switch analog pin
 
@@ -110,15 +112,15 @@ void setup() {
   pinMode(armLimitSwitch, INPUT_PULLUP);
 
   servoScoop.setPin(scoopPin);
-  scoopServo.setMinMax(544, 2400);
-  scoopServo.setSpeed(1);
-  scoopServo.goToMin();
+  scoopServo.write(0, 150, true);
 }
 
 void loop() {
   int onState = digitalRead(onSwitch);  //read for switch inputs
   int collectionLimitState = digitalRead(collectionLimitSwitch);
   int armLimitState = digitalRead(armLimitSwitch);
+
+  if 
 
   if (onState == LOW) {
     driveStepper.enableOutputs();   //enable drive stepper
