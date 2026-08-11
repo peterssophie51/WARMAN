@@ -12,26 +12,27 @@
 #define arm2SP 3   //arm 2 step pin
 
 const int armStepsPerRev = 1600; //arm stepper motor steps per revolution
-const int armDownSteps = armStepsPerRev * 0.5;  //CHANGES THE ROTATION OF THE ARNMS DOWN TILL IT GETS TO THE BOX
-const int armHalfSteps = armStepsPerRev * 0.3;
+const int armDownSteps = armStepsPerRev * 0.95;  //CHANGES THE ROTATION OF THE ARNMS DOWN TILL IT GETS TO THE BOX
+const int armHalfSteps = armStepsPerRev * 0.22;
 const int armSpeed = 240; // CHANGES THE SPEED OF THE ARMS 
 
 #define motorInterfaceType 1
-#define onSwitch A0
-float onPresses = 0;
+#define onSwitch A4
+int onPresses = 0;
 
 #define collectionLimitSwitch A5
 #define armLimitSwitch A3
 #define scoopPin A2
-const int flatteningDegrees = 160;
 
 AccelStepper arm1Stepper = AccelStepper(motorInterfaceType, arm1SP, arm1DP);   //arm 1 stepper motor
 AccelStepper arm2Stepper = AccelStepper(motorInterfaceType, arm2SP, arm2DP);   //arm 2 stepper motor
 VarSpeedServo scoopServo;
 
-enum {rotatingDown, halfUp, halfDown, rotatingUp, end};
+enum {rotatingDown, halfUp, halfDown, pickRocks, rotatingUp,end};
 unsigned char collectionState;
 unsigned char prevState = 1;
+
+#define ledPin A0
 
 void setup() {
   Serial.begin(9600);
@@ -57,12 +58,12 @@ void setup() {
   arm2Stepper.setAcceleration(200);
 
   scoopServo.attach(scoopPin);
-  scoopServo.write(0, 180, true);
+  scoopServo.write(0, 15, true);
   
   pinMode(onSwitch, INPUT_PULLUP);
   pinMode(collectionLimitSwitch, INPUT_PULLUP);
   pinMode(armLimitSwitch, INPUT_PULLUP);
-
+  pinMode(ledPin, OUTPUT);
 }
 
 void loop() {
@@ -70,14 +71,18 @@ void loop() {
   int onState = digitalRead(onSwitch);
   int collectionLimitState = digitalRead(collectionLimitSwitch);
   int armLimitState = digitalRead(armLimitSwitch);
-
-
+  
   if (onState == LOW) {
+    onPresses++;
+  }
+
+  if (onPresses > 0) {
     arm1Stepper.enableOutputs();
     arm2Stepper.enableOutputs();
 
     switch (collectionState) {
       case rotatingDown:
+        digitalWrite(ledPin, HIGH);
         if (collectionState != prevState) {
           arm1Stepper.move(armDownSteps);
           arm2Stepper.move(armDownSteps);
@@ -91,7 +96,7 @@ void loop() {
         if (collectionState != prevState) {
           arm1Stepper.move(-armHalfSteps);
           arm2Stepper.move(-armHalfSteps);
-          scoopServo.write(160, 8.5, false); //CHANGES THE SPEED AND ROTATION OF THE SERVO WHEN ROTATING AROUND
+          scoopServo.write(170, 8.5, false); //CHANGES THE SPEED AND ROTATION OF THE SERVO WHEN ROTATING AROUND
           prevState = collectionState;
         }
         if (arm1Stepper.distanceToGo() == 0 and arm2Stepper.distanceToGo() == 0) {
@@ -104,21 +109,27 @@ void loop() {
         if (collectionLimitState == LOW) {
           arm1Stepper.setSpeed(0);
           arm2Stepper.setSpeed(0);
-          collectionState = rotatingUp; //CHANGES THE SPEED AND ROTATION OF THE SERVO WHEN ROTATING THE EXTRA BIT AROUND
+          collectionState = pickRocks; //CHANGES THE SPEED AND ROTATION OF THE SERVO WHEN ROTATING THE EXTRA BIT AROUND
         }
         break;
+      case pickRocks:
+        scoopServo.write(180, 8, true); //CHANGES THE
+        collectionState = rotatingUp;
+        break;
       case rotatingUp:
-        scoopServo.write(180, 5, true); //CHANGES THE
-
+        scoopServo.write(120, 5, false);
         arm1Stepper.setSpeed(-armSpeed);
         arm2Stepper.setSpeed(-armSpeed);
         if (armLimitState == LOW) {
           arm1Stepper.setSpeed(0);
           arm2Stepper.setSpeed(0);
+          scoopServo.write(180, 6, false);
           collectionState = end;
         }
         break;
+
       case end:
+        digitalWrite(ledPin, LOW);
         arm1Stepper.disableOutputs();
         arm2Stepper.disableOutputs();
         break;

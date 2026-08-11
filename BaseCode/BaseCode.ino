@@ -142,7 +142,7 @@ void loop() {
         }
         break;
       case retract:
-        driveStepper.move(-retractSteps);
+        driveStepper.move(-driveSteps);
         extrusionStepper.move(-extrusionSteps);
         systemState = end;
       case end:
