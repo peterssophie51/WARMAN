@@ -1,54 +1,54 @@
 #include "AccelStepper.h"
-#define directionPin 6
-#define stepPin 5
-#define enablePin 7
+#define extrusionDP 8   //extrusion direction pin
+#define extrusionEP 10   //extrusion enable pin
+#define extrusionSP 9   //extrusion step pin
+const int extrusionStepsPerRev = 6400 ;  //extrusion stepper motor steps per revolution
+float extrusionRevolutions = 5;  //revolutions extrusion stepper moves through
+long extrusionSteps = extrusionStepsPerRev * extrusionRevolutions;   //steps for extrusion stepper motor to take
+const int extrusionSpeed = 6400;  //extrusion speed (steps per second)
+const int extrusionAcceleration = 4000;  //extrusion acceleration (steps per second per second)
+
 #define motorInterfaceType 1
-
-#define onOffSwitch A0
-int lastReading = HIGH;
-int buttonState = HIGH;
-unsigned long lastDebounceTime = 0;
-const unsigned long debounceDelay = 50;
-
-const int stepsPerRevolution = 6400;
-float revolutions = 1;
-long stepsToTake = stepsPerRevolution * revolutions;
-AccelStepper extrusionStepper = AccelStepper(motorInterfaceType, stepPin, directionPin);
+#define onSwitch A4
+int onPresses = 0;
+AccelStepper extrusionStepper = AccelStepper(motorInterfaceType, extrusionSP, extrusionDP); 
 
 enum {stationary, extrude, retract, end};
 unsigned char extrudeState;
 
 void setup() {
-  extrusionStepper.setEnablePin(enablePin);
+  extrusionStepper.setEnablePin(extrusionEP);
   extrusionStepper.setPinsInverted(false, false, true);
   extrusionStepper.disableOutputs();
 
-  extrusionStepper.setMaxSpeed(800);
-  extrusionStepper.setAcceleration(400);
+  extrusionStepper.setMaxSpeed(extrusionSpeed);
+  extrusionStepper.setAcceleration(extrusionAcceleration);
 
-  pinMode(onOffSwitch, INPUT_PULLUP);
+  pinMode(onSwitch, INPUT_PULLUP);
 }
 
 void loop() {
-  int onOffState = digitalRead(onOffSwitch);
-  if (onOffState == LOW) {
+  int onState = digitalRead(onSwitch);
+
+  if (onState == LOW) {
+    onPresses++;
+  }
+
+  if (onPresses > 0) {
     extrusionStepper.enableOutputs();
     switch (extrudeState) {
       case stationary:
-        extrusionStepper.move(stepsToTake);
+        extrusionStepper.move(-extrusionSteps);
         extrudeState = extrude;
         break;
       case extrude:
         if (extrusionStepper.distanceToGo() == 0) {
           delay(3000);
-          extrudeState = retract;
+          extrudeState = end;
         }
         break;
-      case retract:
-        extrusionStepper.move(-stepsToTake);
-        extrudeState = end;
-        break;
       case end:
+        extrusionStepper.disableOutputs();
         break;
     }
     extrusionStepper.run();
