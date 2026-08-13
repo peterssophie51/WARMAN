@@ -165,6 +165,10 @@ void loop() {
         break;
       case rotatingUp:
         scoopServo.write(120, 4, false);
+        if (systemState != prevState) {
+          driveStepper.enableOutputs();
+          driveStepper.move(driveSteps);
+        }
         arm1Stepper.setSpeed(armSpeed);
         arm2Stepper.setSpeed(-armSpeed);
         if (armLimitState == LOW) {
@@ -180,12 +184,10 @@ void loop() {
         arm1Stepper.disableOutputs();
         arm2Stepper.disableOutputs();
         extrusionStepper.enableOutputs();
-        driveStepper.enableOutputs();
         systemState = stationary;
         break;
       case stationary:
         extrusionStepper.move(-extrusionSteps);
-        driveStepper.move(driveSteps);
         systemState = forward;
         break;
       case forward:
