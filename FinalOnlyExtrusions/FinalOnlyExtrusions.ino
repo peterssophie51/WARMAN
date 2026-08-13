@@ -31,9 +31,6 @@ long furtherDriveSteps = driveStepsPerRev * furtherDriveRevolutions * -1;
 long retractSteps = furtherDriveSteps + driveSteps;
 long backwardsRevolutions = driveRevolutions + furtherDriveRevolutions - 1;
 long backwardsDriveSteps = backwardsRevolutions * driveStepsPerRev;
-const int depositDriveSpeed = 2000;
-const int depositDriveAcceleration = 2000;
-
 
 //EXTRUSION NEMA 23
 #define extrusionDP 8   //extrusion direction pin
@@ -59,7 +56,7 @@ AccelStepper driveStepper = AccelStepper(motorInterfaceType, driveSP, driveDP); 
 AccelStepper extrusionStepper = AccelStepper(motorInterfaceType, extrusionSP, extrusionDP);   //extrusion stepper motor
 VarSpeedServo scoopServo;
 
-enum {stationary, forward, further, retract, end};
+enum {tationary, forward, further, retract, end};
 unsigned char systemState;
 unsigned char prevState = 1;
 
@@ -105,9 +102,6 @@ void setup() {
   //setting extrusion stepper motor speeds
   extrusionStepper.setMaxSpeed(extrusionSpeed);
   extrusionStepper.setAcceleration(extrusionAcceleration);
-
-  scoopServo.write(0, 100, true);
-  scoopServo.attach(scoopPin);
   
   pinMode(onSwitch, INPUT_PULLUP);
   pinMode(collectionLimitSwitch, INPUT_PULLUP);
@@ -128,7 +122,9 @@ void loop() {
   if (onPresses > 0) {
     
     switch (systemState) {
-            case stationary:
+      case stationary:
+        extrusionStepper.enableOutputs();
+        driveStepper.enableOutputs();
         extrusionStepper.move(-extrusionSteps);
         driveStepper.move(driveSteps);
         systemState = forward;
@@ -139,8 +135,8 @@ void loop() {
         }
         break;
       case further:
-        driveStepper.setMaxSpeed(depositDriveSpeed);
-        driveStepper.setAcceleration(depositDriveAcceleration);
+        driveStepper.setMaxSpeed(2000);
+        driveStepper.setAcceleration(2000);
         driveStepper.move(furtherDriveSteps);
         systemState = retract;
         break;
@@ -162,9 +158,6 @@ void loop() {
     }
   }
   
- if (systemState == stationary or systemState == forward or systemState == further or systemState == retract or systemState == end) {
-    driveStepper.run();
-    extrusionStepper.run();
-  } 
-
+  driveStepper.run();
+  extrusionStepper.run();
 }

@@ -2,7 +2,7 @@
 #define extrusionDP 8   //extrusion direction pin
 #define extrusionEP 10   //extrusion enable pin
 #define extrusionSP 9   //extrusion step pin
-const int extrusionStepsPerRev = 6400 ;  //extrusion stepper motor steps per revolution
+const int extrusionStepsPerRev = 3200 ;  //extrusion stepper motor steps per revolution
 float extrusionRevolutions = 5;  //revolutions extrusion stepper moves through
 long extrusionSteps = extrusionStepsPerRev * extrusionRevolutions;   //steps for extrusion stepper motor to take
 const int extrusionSpeed = 6400;  //extrusion speed (steps per second)

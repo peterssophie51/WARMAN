@@ -26,10 +26,10 @@ float driveRevolutions = 10;   //revolutions drive stepper moves through
 long driveSteps = driveStepsPerRev * driveRevolutions * -1;   //steps for drive stepper motor to take
 const int driveSpeed = 10000;  //drive speed (steps per second)
 const int driveAcceleration = 5000;  //drive acceleration (steps per second per second)
-float furtherDriveRevolutions = 1.8;
+float furtherDriveRevolutions = 1.3;
 long furtherDriveSteps = driveStepsPerRev * furtherDriveRevolutions * -1;
 long retractSteps = furtherDriveSteps + driveSteps;
-long backwardsRevolutions = driveRevolutions + furtherDriveRevolutions - 1;
+long backwardsRevolutions = driveRevolutions + furtherDriveRevolutions;
 long backwardsDriveSteps = backwardsRevolutions * driveStepsPerRev;
 
 //EXTRUSION NEMA 23
@@ -37,10 +37,10 @@ long backwardsDriveSteps = backwardsRevolutions * driveStepsPerRev;
 #define extrusionEP 10   //extrusion enable pin
 #define extrusionSP 9   //extrusion step pin
 const int extrusionStepsPerRev = 3200 ;  //extrusion stepper motor steps per revolution
-float extrusionRevolutions = 5.2;  //revolutions extrusion stepper moves through
+float extrusionRevolutions = 18.2;                                   ;  //revolutions extrusion stepper moves through
 long extrusionSteps = extrusionStepsPerRev * extrusionRevolutions;   //steps for extrusion stepper motor to take
-const int extrusionSpeed = 3200;  //extrusion speed (steps per second)
-const int extrusionAcceleration = 2000;  //extrusion acceleration (steps per second per second)
+const int extrusionSpeed = 10000;  //extrusion speed (steps per second)
+const int extrusionAcceleration = 5000;  //extrusion acceleration (steps per second per second)
 
 #define motorInterfaceType 1
 #define onSwitch A4
@@ -164,7 +164,7 @@ void loop() {
         systemState = rotatingUp;
         break;
       case rotatingUp:
-        scoopServo.write(120, 4, false);
+        scoopServo.write(120, 5, false);
         arm1Stepper.setSpeed(armSpeed);
         arm2Stepper.setSpeed(-armSpeed);
         if (armLimitState == LOW) {
@@ -194,22 +194,23 @@ void loop() {
         }
         break;
       case further:
-        driveStepper.setMaxSpeed(2000);
-        driveStepper.setAcceleration(2000);
+        driveStepper.setMaxSpeed(1250);
+        driveStepper.setAcceleration(1250);
         driveStepper.move(furtherDriveSteps);
         systemState = retract;
         break;
       case retract:
         if (driveStepper.distanceToGo() == 0 and extrusionStepper.distanceToGo() == 0) {
-          delay(2000);
+          delay(3000);
           driveStepper.move(backwardsDriveSteps);
-          extrusionStepper.disableOutputs();
+          extrusionStepper.move(extrusionSteps);
           systemState = end;
         }
         break;
       case end:
       if (driveStepper.distanceToGo() == 0 and extrusionStepper.distanceToGo() == 0) {
         driveStepper.disableOutputs();
+        extrusionStepper.disableOutputs();
         digitalWrite(ledPin, LOW);
       }
       break;
