@@ -26,7 +26,7 @@ float driveRevolutions = 10;   //revolutions drive stepper moves through
 long driveSteps = driveStepsPerRev * driveRevolutions * -1;   //steps for drive stepper motor to take
 const int driveSpeed = 10000;  //drive speed (steps per second)
 const int driveAcceleration = 5000;  //drive acceleration (steps per second per second)
-float furtherDriveRevolutions = 1.3;
+float furtherDriveRevolutions = 1.4;
 long furtherDriveSteps = driveStepsPerRev * furtherDriveRevolutions * -1;
 long retractSteps = furtherDriveSteps + driveSteps;
 long backwardsRevolutions = driveRevolutions + furtherDriveRevolutions;
@@ -122,6 +122,67 @@ void loop() {
   if (onPresses > 0) {
     
     switch (systemState) {
+      case rotatingDown:  
+        digitalWrite(ledPin, HIGH);
+        if (systemState != prevState) {
+          scoopServo.attach(scoopPin);
+          scoopServo.write(0, 100, true);
+          arm1Stepper.enableOutputs();
+          arm2Stepper.enableOutputs();
+          driveStepper.disableOutputs();
+          extrusionStepper.disableOutputs();
+          arm1Stepper.move(-armDownSteps);
+          arm2Stepper.move(armDownSteps);
+          prevState = systemState;
+        }
+        if (arm1Stepper.distanceToGo() == 0 and arm2Stepper.distanceToGo() == 0) {
+          systemState = halfUp;
+        }
+        break;
+      case halfUp: 
+        if (systemState != prevState) {
+          arm1Stepper.move(armHalfSteps);
+          arm2Stepper.move(-armHalfSteps);
+          scoopServo.write(170, 9, false); //CHANGES THE SPEED AND ROTATION OF THE SERVO WHEN ROTATING AROUND
+          prevState = systemState;
+        }
+        if (arm1Stepper.distanceToGo() == 0 and arm2Stepper.distanceToGo() == 0) {
+          systemState = halfDown;
+        }
+        break;
+      case halfDown:
+        arm1Stepper.setSpeed(-armSpeed);
+        arm2Stepper.setSpeed(armSpeed);
+        if (collectionLimitState == LOW) {
+          arm1Stepper.setSpeed(0);
+          arm2Stepper.setSpeed(0);
+          systemState = pickRocks; //CHANGES THE SPEED AND ROTATION OF THE SERVO WHEN ROTATING THE EXTRA BIT AROUND
+        }
+        break;
+      case pickRocks:
+        scoopServo.write(180, 8, true); //CHANGES THE
+        systemState = rotatingUp;
+        break;
+      case rotatingUp:
+        scoopServo.write(120, 5, false);
+        arm1Stepper.setSpeed(armSpeed);
+        arm2Stepper.setSpeed(-armSpeed);
+        if (armLimitState == LOW) {
+          arm1Stepper.setSpeed(0);
+          arm2Stepper.setSpeed(0);
+          scoopServo.write(180, 6, false);
+          delay(2000);
+          systemState = endScoop;
+        }
+        break;
+      case endScoop:
+        scoopServo.write(100, 5, false);
+        arm1Stepper.disableOutputs();
+        arm2Stepper.disableOutputs();
+        extrusionStepper.enableOutputs();
+        driveStepper.enableOutputs();
+        systemState = stationary;
+        break;
       case stationary:
         extrusionStepper.move(-extrusionSteps);
         driveStepper.move(driveSteps);
@@ -133,8 +194,8 @@ void loop() {
         }
         break;
       case further:
-        driveStepper.setMaxSpeed(1150);
-        driveStepper.setAcceleration(1150);
+        driveStepper.setMaxSpeed(1050);
+        driveStepper.setAcceleration(1050);
         driveStepper.move(furtherDriveSteps);
         systemState = retract;
         break;
@@ -142,16 +203,17 @@ void loop() {
         if (driveStepper.distanceToGo() == 0 and extrusionStepper.distanceToGo() == 0) {
           delay(3000);
           driveStepper.move(backwardsDriveSteps);
+          extrusionStepper.move(extrusionSteps);
           systemState = end;
         }
         break;
       case end:
-        if (driveStepper.distanceToGo() == 0 and extrusionStepper.distanceToGo() == 0) {
-          driveStepper.disableOutputs();
-          digitalWrite(ledPin, LOW);
-        }
-        break;
-      driveStepper.run();
+      if (driveStepper.distanceToGo() == 0 and extrusionStepper.distanceToGo() == 0) {
+        driveStepper.disableOutputs();
+        extrusionStepper.disableOutputs();
+        digitalWrite(ledPin, LOW);
+      }
+      break;
     
     }
   }
