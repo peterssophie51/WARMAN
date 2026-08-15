@@ -26,7 +26,7 @@ float driveRevolutions = 10;   //revolutions drive stepper moves through
 long driveSteps = driveStepsPerRev * driveRevolutions * -1;   //steps for drive stepper motor to take
 const int driveSpeed = 4000;  //drive speed (steps per second)
 const int driveAcceleration = 4000;  //drive acceleration (steps per second per second)
-float furtherDriveRevolutions = 1.4;
+float furtherDriveRevolutions = 1.2;
 long furtherDriveSteps = driveStepsPerRev * furtherDriveRevolutions * -1;
 long retractSteps = furtherDriveSteps + driveSteps;
 long backwardsRevolutions = driveRevolutions + furtherDriveRevolutions;
@@ -193,19 +193,16 @@ void loop() {
         break;
       case stationary:
         extrusionStepper.move(-extrusionSteps);
-        driveStepper.move(driveSteps);
+        driveStepper.move(driveSteps + furtherDriveSteps);
         systemState = forward;
         break;
       case forward:
-        if (driveStepper.distanceToGo() == 0 and extrusionStepper.distanceToGo() == 0) {
-          systemState = further;
+        if (driveStepper.distanceToGo() == furtherDriveSteps) {
+          driveStepper.setMaxSpeed(350);
         }
-        break;
-      case further:
-        driveStepper.setMaxSpeed(500);
-        driveStepper.setAcceleration(500);
-        driveStepper.move(furtherDriveSteps);
-        systemState = retract;
+        if (driveStepper.distanceToGo() == 0 and extrusionStepper.distanceToGo() == 0) {
+          systemState = retract;
+        }
         break;
       case retract:
         if (driveStepper.distanceToGo() == 0 and extrusionStepper.distanceToGo() == 0) {
