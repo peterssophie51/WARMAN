@@ -1,15 +1,16 @@
 #include "AccelStepper.h"
-#define directionPin 3
-#define stepPin 2
-#define enablePin 4
+#define directionPin 5
+#define stepPin 6
+#define enablePin 7
 #define motorInterfaceType 1
-#define onOffSwitch A0
+#define onOffSwitch A4
 
 AccelStepper driveStepper = AccelStepper(motorInterfaceType, stepPin, directionPin);
 
-const int stepsPerRev = 1600;
-float rotations = -2;
-long stepsToMove = rotations * stepsPerRev;
+const int stepsPerRev = 800;
+float rotations = 10;
+long stepsToMove = -rotations * stepsPerRev;
+int onPresses = 0;
 
 enum {stationary, forwards, backwards, end};
 unsigned char driveState;
@@ -19,15 +20,20 @@ void setup() {
   driveStepper.setPinsInverted(false, false, true);
   driveStepper.disableOutputs();
 
-  driveStepper.setMaxSpeed(300);
-  driveStepper.setAcceleration(100);
+  driveStepper.setMaxSpeed(4000);
+  driveStepper.setAcceleration(1000);
 
   pinMode(onOffSwitch, INPUT_PULLUP);
 }
 
 void loop() {
   int onOffState = digitalRead(onOffSwitch);
+
   if (onOffState == LOW) {
+    onPresses++;
+  }
+  
+  if (onPresses > 0) {
     driveStepper.enableOutputs();
     switch (driveState) {
       case stationary: 

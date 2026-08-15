@@ -13,7 +13,7 @@
 
 const int armStepsPerRev = 1600; //arm stepper motor steps per revolution
 const int armDownSteps = armStepsPerRev * 0.95;  //CHANGES THE ROTATION OF THE ARNMS DOWN TILL IT GETS TO THE BOX
-const int armHalfSteps = armStepsPerRev * 0.23;
+const int armHalfSteps = armStepsPerRev * 0.225;
 const int armSpeed = 240; // CHANGES THE SPEED OF THE ARMS 
 const int armAcceleration = 200;
 
@@ -21,11 +21,11 @@ const int armAcceleration = 200;
 #define driveDP 5    //drive direction pin
 #define driveEP 7   //drive enable pin
 #define driveSP 6   //drive step pin
-const int driveStepsPerRev = 3200;   //drive stepper motor steps per revolution
+const int driveStepsPerRev = 800;   //drive stepper motor steps per revolution
 float driveRevolutions = 10;   //revolutions drive stepper moves through
 long driveSteps = driveStepsPerRev * driveRevolutions * -1;   //steps for drive stepper motor to take
-const int driveSpeed = 10000;  //drive speed (steps per second)
-const int driveAcceleration = 5000;  //drive acceleration (steps per second per second)
+const int driveSpeed = 4000;  //drive speed (steps per second)
+const int driveAcceleration = 4000;  //drive acceleration (steps per second per second)
 float furtherDriveRevolutions = 1.4;
 long furtherDriveSteps = driveStepsPerRev * furtherDriveRevolutions * -1;
 long retractSteps = furtherDriveSteps + driveSteps;
@@ -36,11 +36,11 @@ long backwardsDriveSteps = backwardsRevolutions * driveStepsPerRev;
 #define extrusionDP 8   //extrusion direction pin
 #define extrusionEP 10   //extrusion enable pin
 #define extrusionSP 9   //extrusion step pin
-const int extrusionStepsPerRev = 3200 ;  //extrusion stepper motor steps per revolution
+const int extrusionStepsPerRev = 800 ;  //extrusion stepper motor steps per revolution
 float extrusionRevolutions = 18.3;                                   ;  //revolutions extrusion stepper moves through
 long extrusionSteps = extrusionStepsPerRev * extrusionRevolutions;   //steps for extrusion stepper motor to take
-const int extrusionSpeed = 10000;  //extrusion speed (steps per second)
-const int extrusionAcceleration = 5000;  //extrusion acceleration (steps per second per second)
+const int extrusionSpeed = 4000;  //extrusion speed (steps per second)
+const int extrusionAcceleration = 4000;  //extrusion acceleration (steps per second per second)
 
 #define motorInterfaceType 1
 #define onSwitch A4
@@ -131,6 +131,10 @@ void loop() {
           arm2Stepper.enableOutputs();
           driveStepper.disableOutputs();
           extrusionStepper.disableOutputs();
+          arm1Stepper.setMaxSpeed(400);
+          arm2Stepper.setMaxSpeed(400);
+          arm1Stepper.setAcceleration(400);
+          arm2Stepper.setAcceleration(400);
           arm1Stepper.move(-armDownSteps);
           arm2Stepper.move(armDownSteps);
           prevState = systemState;
@@ -141,6 +145,10 @@ void loop() {
         break;
       case halfUp: 
         if (systemState != prevState) {
+          arm1Stepper.setMaxSpeed(armSpeed);
+          arm2Stepper.setMaxSpeed(armSpeed);
+          arm1Stepper.setAcceleration(armAcceleration);
+          arm2Stepper.setAcceleration(armAcceleration);
           arm1Stepper.move(armHalfSteps);
           arm2Stepper.move(-armHalfSteps);
           scoopServo.write(170, 9, false); //CHANGES THE SPEED AND ROTATION OF THE SERVO WHEN ROTATING AROUND
@@ -176,7 +184,7 @@ void loop() {
         }
         break;
       case endScoop:
-        scoopServo.write(100, 5, false);
+        scoopServo.write(100, 20, false);
         arm1Stepper.disableOutputs();
         arm2Stepper.disableOutputs();
         extrusionStepper.enableOutputs();
@@ -194,14 +202,16 @@ void loop() {
         }
         break;
       case further:
-        driveStepper.setMaxSpeed(1050);
-        driveStepper.setAcceleration(1050);
+        driveStepper.setMaxSpeed(500);
+        driveStepper.setAcceleration(500);
         driveStepper.move(furtherDriveSteps);
         systemState = retract;
         break;
       case retract:
         if (driveStepper.distanceToGo() == 0 and extrusionStepper.distanceToGo() == 0) {
-          delay(3000);
+          delay(1000);
+          driveStepper.setMaxSpeed(4000);
+          driveStepper.setAcceleration(4000);
           driveStepper.move(backwardsDriveSteps);
           extrusionStepper.move(extrusionSteps);
           systemState = end;
