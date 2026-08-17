@@ -22,7 +22,7 @@ const int armAcceleration = 200;
 #define driveEP 7   //drive enable pin
 #define driveSP 6   //drive step pin
 const int driveStepsPerRev = 800;   //drive stepper motor steps per revolution
-float driveRevolutions = 10;   //revolutions drive stepper moves through
+float driveRevolutions = 6.3;   //revolutions drive stepper moves through
 long driveSteps = driveStepsPerRev * driveRevolutions * -1;   //steps for drive stepper motor to take
 const int driveSpeed = 4000;  //drive speed (steps per second)
 const int driveAcceleration = 4000;  //drive acceleration (steps per second per second)

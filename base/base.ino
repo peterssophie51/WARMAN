@@ -151,7 +151,7 @@ void loop() {
           arm2Stepper.setAcceleration(armAcceleration);
           arm1Stepper.move(armHalfSteps);
           arm2Stepper.move(-armHalfSteps);
-          scoopServo.write(170, 9, false); //CHANGES THE SPEED AND ROTATION OF THE SERVO WHEN ROTATING AROUND
+          scoopServo.write(170, 9.5, false); //CHANGES THE SPEED AND ROTATION OF THE SERVO WHEN ROTATING AROUND
           prevState = systemState;
         }
         if (arm1Stepper.distanceToGo() == 0 and arm2Stepper.distanceToGo() == 0) {
@@ -198,7 +198,7 @@ void loop() {
         break;
       case forward:
         if (driveStepper.distanceToGo() == furtherDriveSteps) {
-          driveStepper.setMaxSpeed(350);
+          driveStepper.setMaxSpeed(330);
         }
         if (driveStepper.distanceToGo() == 0 and extrusionStepper.distanceToGo() == 0) {
           systemState = retract;
