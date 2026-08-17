@@ -1,31 +1,43 @@
-// define the output pins the arduino is plugged intoi
-#define directionPin 10
-#define stepPin 8
-#define enablePin 12
-#define stepsPerRevolution 200
-int steps = stepsPerRevolution * 10;
+//EXTRUSION NEMA 23
+#define extrusionDP 8   //extrusion direction pin
+#define extrusionEP 10   //extrusion enable pin
+#define extrusionSP 9   //extrusion step pin
+const int extrusionStepsPerRev = 800 ;  //extrusion stepper motor steps per revolution
+float extrusionRevolutions = 18.3;                                   ;  //revolutions extrusion stepper moves through
+long extrusionSteps = extrusionStepsPerRev * extrusionRevolutions;   //steps for extrusion stepper motor to take
+const int extrusionSpeed = 4000;  //extrusion speed (steps per second)
+const int extrusionAcceleration = 4000;  //extrusion acceleration (steps per second per second)
+#define onSwitch A4
+int onPresses = 0;
+
 
 void setup() {
   // declare the pins as outputs
-  pinMode(stepPin, OUTPUT);
-  pinMode(directionPin, OUTPUT);
-  pinMode(enablePin, OUTPUT);
-  digitalWrite(enablePin, LOW);
+  pinMode(extrusionSP, OUTPUT);
+  pinMode(extrusionDP, OUTPUT);
+  pinMode(extrusionEP, OUTPUT);
+  digitalWrite(extrusionEP, LOW);
+  pinMode(onSwitch, INPUT_PULLUP);
   
 
 }
 
 void loop() {
   // set the spinning direction, direction depends on wiring
-  digitalWrite(directionPin, HIGH);
+  int onState = digitalRead(onSwitch);
+  digitalWrite(extrusionEP, HIGH);
 
-  //spin the stepper motor in 1 revolution
-  for (int i = 0; i < 2; i++) {
-    digitalWrite(stepPin, HIGH);
-    delayMicroseconds(5000);
-    digitalWrite(stepPin, LOW);
-    delayMicroseconds(5000);
+  if (onState == LOW) {
+    onPresses++;
   }
-  delay(2000);
 
-}
+  if (onPresses > 0) {
+    for (int i = 0; i < extrusionSteps; i++) {
+      digitalWrite(extrusionSP, HIGH);
+      delayMicroseconds(1000);
+      digitalWrite(extrusionEP, LOW);
+      delayMicroseconds(1000);
+    }
+    delay(2000);
+  }
+

@@ -22,11 +22,11 @@ const int armAcceleration = 200;
 #define driveEP 7   //drive enable pin
 #define driveSP 6   //drive step pin
 const int driveStepsPerRev = 800;   //drive stepper motor steps per revolution
-float driveRevolutions = 6.3;   //revolutions drive stepper moves through
+float driveRevolutions = 6.27;   //revolutions drive stepper moves through
 long driveSteps = driveStepsPerRev * driveRevolutions * -1;   //steps for drive stepper motor to take
 const int driveSpeed = 4000;  //drive speed (steps per second)
 const int driveAcceleration = 4000;  //drive acceleration (steps per second per second)
-float furtherDriveRevolutions = 1.2;
+float furtherDriveRevolutions = 1.25;
 long furtherDriveSteps = driveStepsPerRev * furtherDriveRevolutions * -1;
 long retractSteps = furtherDriveSteps + driveSteps;
 long backwardsRevolutions = driveRevolutions + furtherDriveRevolutions;
@@ -37,10 +37,10 @@ long backwardsDriveSteps = backwardsRevolutions * driveStepsPerRev;
 #define extrusionEP 10   //extrusion enable pin
 #define extrusionSP 9   //extrusion step pin
 const int extrusionStepsPerRev = 800 ;  //extrusion stepper motor steps per revolution
-float extrusionRevolutions = 18.3;                                   ;  //revolutions extrusion stepper moves through
+float extrusionRevolutions = 8.5;                                   ;  //revolutions extrusion stepper moves through
 long extrusionSteps = extrusionStepsPerRev * extrusionRevolutions;   //steps for extrusion stepper motor to take
 const int extrusionSpeed = 4000;  //extrusion speed (steps per second)
-const int extrusionAcceleration = 4000;  //extrusion acceleration (steps per second per second)
+const int extrusionAcceleration = 1000;  //extrusion acceleration (steps per second per second)
 
 #define motorInterfaceType 1
 #define onSwitch A4
@@ -134,6 +134,7 @@ void loop() {
           driveStepper.setMaxSpeed(400);
         }
         if (driveStepper.distanceToGo() == 0 and extrusionStepper.distanceToGo() == 0) {
+          extrusionStepper.setAcceleration(4000);
           driveStepper.setMaxSpeed(4000);
           systemState = retract;
         }
