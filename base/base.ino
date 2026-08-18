@@ -16,6 +16,7 @@ const int armDownSteps = armStepsPerRev * 0.95;  //CHANGES THE ROTATION OF THE A
 const int armHalfSteps = armStepsPerRev * 0.225;
 const int armSpeed = 240; // CHANGES THE SPEED OF THE ARMS 
 const int armAcceleration = 200;
+const int armEndSteps = armStepsPerRev * 0.2;
 
 //DRIVE NEMA 23
 #define driveDP 5    //drive direction pin
@@ -181,18 +182,26 @@ void loop() {
         if (armLimitState == LOW) {
           arm1Stepper.setSpeed(0);
           arm2Stepper.setSpeed(0);
-          scoopServo.write(170, 15, false);
-          delay(1000);
+          scoopServo.write(150, 100, true);
           systemState = endScoop;
         }
         break;
       case endScoop:
-        scoopServo.write(100, 40, false);
-        arm1Stepper.disableOutputs();
-        arm2Stepper.disableOutputs();
-        extrusionStepper.enableOutputs();
-        driveStepper.enableOutputs();
-        systemState = stationary;
+        if (systemState != prevState) {
+          scoopServo.write(100, 40, false);
+          arm1Stepper.setMaxSpeed(4000);
+          arm2Stepper.setMaxSpeed(4000);
+          arm1Stepper.move(-armEndSteps);
+          arm2Stepper.move(armEndSteps);
+          prevState = systemState;
+        }
+        if (arm1Stepper.distanceToGo() == 0 and arm2Stepper.distanceToGo() == 0) {
+          arm1Stepper.disableOutputs();
+          arm2Stepper.disableOutputs();
+          extrusionStepper.enableOutputs();
+          driveStepper.enableOutputs();
+          systemState = stationary;
+        }
         break;
       case stationary:
         extrusionStepper.move(-extrusionSteps);
@@ -230,7 +239,7 @@ void loop() {
     }
   }
   
-  if (systemState == rotatingDown or systemState == halfUp) {
+  if (systemState == rotatingDown or systemState == halfUp or systemState == endScoop) {
     arm1Stepper.run();
     arm2Stepper.run();
   } else if (systemState == stationary or systemState == forward or systemState == further or systemState == retract or systemState == end) {

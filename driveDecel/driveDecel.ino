@@ -11,16 +11,18 @@
 #define arm2EP 4   //arm 2 enable pin
 #define arm2SP 3   //arm 2 step pin
 
+
 const int armStepsPerRev = 1600; //arm stepper motor steps per revolution
 const int armDownSteps = armStepsPerRev * 0.95;  //CHANGES THE ROTATION OF THE ARNMS DOWN TILL IT GETS TO THE BOX
 const int armHalfSteps = armStepsPerRev * 0.225;
+
 const int armSpeed = 240; // CHANGES THE SPEED OF THE ARMS 
 const int armAcceleration = 200;
 
 //DRIVE NEMA 23
 #define driveDP 5    //drive direction pin
 #define driveEP 7   //drive enable pin
-#define driveSP 6   //drive step pin
+#define driveSP 10  //drive step pin
 const int driveStepsPerRev = 800;   //drive stepper motor steps per revolution
 float driveRevolutions = 6.27;   //revolutions drive stepper moves through
 long driveSteps = driveStepsPerRev * driveRevolutions * -1;   //steps for drive stepper motor to take
@@ -34,13 +36,13 @@ long backwardsDriveSteps = backwardsRevolutions * driveStepsPerRev;
 
 //EXTRUSION NEMA 23
 #define extrusionDP 8   //extrusion direction pin
-#define extrusionEP 10   //extrusion enable pin
+#define extrusionEP 11   //extrusion enable pin
 #define extrusionSP 9   //extrusion step pin
 const int extrusionStepsPerRev = 800 ;  //extrusion stepper motor steps per revolution
 float extrusionRevolutions = 8.5;                                   ;  //revolutions extrusion stepper moves through
 long extrusionSteps = extrusionStepsPerRev * extrusionRevolutions;   //steps for extrusion stepper motor to take
 const int extrusionSpeed = 4000;  //extrusion speed (steps per second)
-const int extrusionAcceleration = 1000;  //extrusion acceleration (steps per second per second)
+const int extrusionAcceleration = 4000;  //extrusion acceleration (steps per second per second)
 
 #define motorInterfaceType 1
 #define onSwitch A4

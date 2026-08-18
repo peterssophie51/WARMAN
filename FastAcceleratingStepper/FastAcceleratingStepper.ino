@@ -8,14 +8,14 @@
 #define driveSP 10   //drive step pin
 const int driveStepsPerRev = 800;   //drive stepper motor steps per revolution
 float driveRevolutions = 6.3;   //revolutions drive stepper moves through
-long driveSteps = driveStepsPerRev * driveRevolutions * -1;   //steps for drive stepper motor to take
+float driveSteps = driveStepsPerRev * driveRevolutions * -1;   //steps for drive stepper motor to take
 const int driveSpeed = 4000;  //drive speed (steps per second)
 const int driveAcceleration = 4000;  //drive acceleration (steps per second per second)
 float furtherDriveRevolutions = 1.25;
-long furtherDriveSteps = driveStepsPerRev * furtherDriveRevolutions * -1;
-long retractSteps = furtherDriveSteps + driveSteps;
-long backwardsRevolutions = driveRevolutions + furtherDriveRevolutions;
-long backwardsDriveSteps = backwardsRevolutions * driveStepsPerRev;
+float furtherDriveSteps = driveStepsPerRev * furtherDriveRevolutions * -1;
+float retractSteps = furtherDriveSteps + driveSteps;
+float backwardsRevolutions = driveRevolutions + furtherDriveRevolutions;
+float backwardsDriveSteps = backwardsRevolutions * driveStepsPerRev;
 
 //EXTRUSION NEMA 23
 #define extrusionDP 8   //extrusion direction pin
@@ -23,7 +23,7 @@ long backwardsDriveSteps = backwardsRevolutions * driveStepsPerRev;
 #define extrusionSP 9   //extrusion step pin
 const int extrusionStepsPerRev = 800 ;  //extrusion stepper motor steps per revolution
 float extrusionRevolutions = 8.5;                                   ;  //revolutions extrusion stepper moves through
-long extrusionSteps = extrusionStepsPerRev * extrusionRevolutions;   //steps for extrusion stepper motor to take
+float extrusionSteps = extrusionStepsPerRev * extrusionRevolutions;   //steps for extrusion stepper motor to take
 const int extrusionSpeed = 4000;  //extrusion speed (steps per second)
 const int extrusionAcceleration = 1000;  //extrusion acceleration (steps per second per second)
 
@@ -82,6 +82,7 @@ void loop() {
   int armLimitState = digitalRead(armLimitSwitch);
   long driveDistanceToGo = driveStepper->targetPos() - driveStepper->getCurrentPosition();
   long extrusionDistanceToGo = extrusionStepper->targetPos() - extrusionStepper->getCurrentPosition();
+  Serial.println(extrusionDistanceToGo);
 
 
   if (onState == LOW) {
@@ -95,31 +96,28 @@ void loop() {
         driveStepper->enableOutputs();
         extrusionStepper->enableOutputs();
         extrusionStepper->move(-extrusionSteps);
-        driveStepper->move(driveSteps + furtherDriveSteps);
         systemState = forward;
         break;
       case forward:
-        if (driveDistanceToGo == furtherDriveSteps) {
-          driveStepper->setSpeedInHz(400);
+        if (!driveStepper->isRunning()) {
+          driveStepper->setSpeedInHz(600);
         }
-        if (driveDistanceToGo == 0 and extrusionDistanceToGo == 0) {
+        if (!driveStepper->isRunning() and !extrusionStepper->isRunning()) {
           extrusionStepper->setAcceleration(4000);
-          driveStepper->setSpeedInHz(4000);
           systemState = retract;
         }
         break;
       case retract:
-        if (driveDistanceToGo == 0 and extrusionDistanceToGo == 0) {
+        if (!driveStepper->isRunning() and !extrusionStepper->isRunning()) {
           delay(1000);
-          driveStepper->setSpeedInHz(4000);
-          driveStepper->setAcceleration(4000);
-          driveStepper->move(backwardsDriveSteps);
+          driveStepper->setSpeedInHz(2000);
+          driveStepper->setAcceleration(2000);
           extrusionStepper->move(extrusionSteps);
           systemState = end;
         }
         break;
       case end:
-        if (driveDistanceToGo == 0 and extrusionDistanceToGo == 0) {
+        if (!driveStepper->isRunning() and !extrusionStepper->isRunning()) {
           driveStepper->disableOutputs();
           extrusionStepper->disableOutputs();
           digitalWrite(ledPin, LOW);
