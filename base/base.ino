@@ -2,7 +2,7 @@
 #include <VarSpeedServo.h>
 
 //ARM 1 NEMA 17
-#define arm1DP 11   //arm 1 direction pin
+#define arm1DP 6   //arm 1 direction pin
 #define arm1EP 13   //arm 1 enable pin
 #define arm1SP 12   //arm 1 step pin
 
@@ -20,7 +20,7 @@ const int armAcceleration = 200;
 //DRIVE NEMA 23
 #define driveDP 5    //drive direction pin
 #define driveEP 7   //drive enable pin
-#define driveSP 6   //drive step pin
+#define driveSP 10   //drive step pin
 const int driveStepsPerRev = 800;   //drive stepper motor steps per revolution
 float driveRevolutions = 6.3;   //revolutions drive stepper moves through
 long driveSteps = driveStepsPerRev * driveRevolutions * -1;   //steps for drive stepper motor to take
@@ -29,12 +29,12 @@ const int driveAcceleration = 4000;  //drive acceleration (steps per second per 
 float furtherDriveRevolutions = 1.25;
 long furtherDriveSteps = driveStepsPerRev * furtherDriveRevolutions * -1;
 long retractSteps = furtherDriveSteps + driveSteps;
-long backwardsRevolutions = driveRevolutions + furtherDriveRevolutions - 1;
+long backwardsRevolutions = driveRevolutions + furtherDriveRevolutions - 0.5;
 long backwardsDriveSteps = backwardsRevolutions * driveStepsPerRev;
 
 //EXTRUSION NEMA 23
 #define extrusionDP 8   //extrusion direction pin
-#define extrusionEP 10   //extrusion enable pin
+#define extrusionEP 11   //extrusion enable pin
 #define extrusionSP 9   //extrusion step pin
 const int extrusionStepsPerRev = 800 ;  //extrusion stepper motor steps per revolution
 float extrusionRevolutions = 8.5;                                   ;  //revolutions extrusion stepper moves through
@@ -211,7 +211,7 @@ void loop() {
         break;
       case retract:
         if (driveStepper.distanceToGo() == 0 and extrusionStepper.distanceToGo() == 0) {
-          delay(500);
+          delay(700);
           driveStepper.setMaxSpeed(4000);
           driveStepper.setAcceleration(4000);
           driveStepper.move(backwardsDriveSteps);
