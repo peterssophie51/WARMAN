@@ -26,8 +26,8 @@ const int driveStepsPerRev = 800;   //drive stepper motor steps per revolution
 float driveRevolutions = 6.685;   //revolutions drive stepper moves through
 float driveSteps = driveStepsPerRev * driveRevolutions * -1;   //steps for drive stepper motor to take
 const int driveSpeed = 4000;  //drive speed (steps per second)
-const int driveAcceleration = 3000;  //drive acceleration (steps per second per second)
-float furtherDriveRevolutions = 0.9;
+const int driveAcceleration = 2000;  //drive acceleration (steps per second per second)
+float furtherDriveRevolutions = 0.87;
 float furtherDriveSteps = driveStepsPerRev * furtherDriveRevolutions * -1;
 float retractSteps = furtherDriveSteps + driveSteps;
 float backwardsRevolutions = driveRevolutions + furtherDriveRevolutions - 0.5;
@@ -174,15 +174,15 @@ void loop() {
         systemState = rotatingUp;
         break;
       case rotatingUp:
-        scoopServo.write(110, 30, false);
-        arm1Stepper.setMaxSpeed(1400);
-        arm2Stepper.setMaxSpeed(1400);
-        arm1Stepper.setSpeed(1400);
-        arm2Stepper.setSpeed(-1400);
+        scoopServo.write(110, 35, false);
+        arm1Stepper.setMaxSpeed(1600);
+        arm2Stepper.setMaxSpeed(1600);
+        arm1Stepper.setSpeed(1600);
+        arm2Stepper.setSpeed(-1600);
         if (armLimitState == LOW) {
           arm1Stepper.setSpeed(0);
           arm2Stepper.setSpeed(0);
-          scoopServo.write(170, 100, true);
+          scoopServo.write(145, 200, true);
           systemState = endScoop;
         }
         break;
@@ -217,7 +217,7 @@ void loop() {
         break;
       case retract:
         if (driveStepper.distanceToGo() == 0 and extrusionStepper.distanceToGo() == 0) {
-          delay(1000);
+          delay(1200);
           driveStepper.setMaxSpeed(4000);
           driveStepper.setAcceleration(4000);
           driveStepper.move(backwardsDriveSteps);
