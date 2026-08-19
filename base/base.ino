@@ -174,7 +174,7 @@ void loop() {
         systemState = rotatingUp;
         break;
       case rotatingUp:
-        scoopServo.write(110, 35, false);
+        scoopServo.write(110, 25, false);
         arm1Stepper.setMaxSpeed(1600);
         arm2Stepper.setMaxSpeed(1600);
         arm1Stepper.setSpeed(1600);
