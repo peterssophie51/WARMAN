@@ -12,11 +12,11 @@
 #define arm2SP 3   //arm 2 step pin
 
 const int armStepsPerRev = 1600; //arm stepper motor steps per revolution
-const int armDownSteps = armStepsPerRev * 0.95;  //CHANGES THE ROTATION OF THE ARNMS DOWN TILL IT GETS TO THE BOX
-const int armHalfSteps = armStepsPerRev * 0.225;
+float armDownSteps = armStepsPerRev * 0.95;  //CHANGES THE ROTATION OF THE ARNMS DOWN TILL IT GETS TO THE BOX
+float armHalfSteps = armStepsPerRev * 0.225;
 const int armSpeed = 240; // CHANGES THE SPEED OF THE ARMS 
 const int armAcceleration = 200;
-const int armEndSteps = armStepsPerRev * 0.2;
+float armEndSteps = armStepsPerRev * 0.2;
 
 //DRIVE NEMA 23
 #define driveDP 5    //drive direction pin
@@ -26,7 +26,7 @@ const int driveStepsPerRev = 800;   //drive stepper motor steps per revolution
 float driveRevolutions = 6.685;   //revolutions drive stepper moves through
 float driveSteps = driveStepsPerRev * driveRevolutions * -1;   //steps for drive stepper motor to take
 const int driveSpeed = 4000;  //drive speed (steps per second)
-const int driveAcceleration = 2000;  //drive acceleration (steps per second per second)
+const int driveAcceleration = 1500;  //drive acceleration (steps per second per second)
 float furtherDriveRevolutions = 0.87;
 float furtherDriveSteps = driveStepsPerRev * furtherDriveRevolutions * -1;
 float retractSteps = furtherDriveSteps + driveSteps;
@@ -146,10 +146,10 @@ void loop() {
         break;
       case halfUp: 
         if (systemState != prevState) {
-          arm1Stepper.setMaxSpeed(2000);
-          arm2Stepper.setMaxSpeed(2000);
-          arm1Stepper.setAcceleration(2000);
-          arm2Stepper.setAcceleration(2000);
+          arm1Stepper.setMaxSpeed(2200);
+          arm2Stepper.setMaxSpeed(2200);
+          arm1Stepper.setAcceleration(2200);
+          arm2Stepper.setAcceleration(2200);
           arm1Stepper.move(armHalfSteps);
           arm2Stepper.move(-armHalfSteps);
           scoopServo.write(50, 40, false); //CHANGES THE SPEED AND ROTATION OF THE SERVO WHEN ROTATING AROUND
@@ -174,15 +174,16 @@ void loop() {
         systemState = rotatingUp;
         break;
       case rotatingUp:
-        scoopServo.write(110, 25, false);
-        arm1Stepper.setMaxSpeed(1600);
-        arm2Stepper.setMaxSpeed(1600);
-        arm1Stepper.setSpeed(1600);
-        arm2Stepper.setSpeed(-1600);
+        scoopServo.write(110, 27, false);
+        arm1Stepper.setMaxSpeed(1700);
+        arm2Stepper.setMaxSpeed(1700);
+        arm1Stepper.setSpeed(1700);
+        arm2Stepper.setSpeed(-1700);
         if (armLimitState == LOW) {
           arm1Stepper.setSpeed(0);
           arm2Stepper.setSpeed(0);
-          scoopServo.write(145, 200, true);
+          scoopServo.write(135, 255, true);
+          delay(500);
           systemState = endScoop;
         }
         break;
