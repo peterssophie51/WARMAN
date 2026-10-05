@@ -1,3 +1,5 @@
+#include <VarSpeedServoRA4M1.h>
+
 //NOTES ON CHANGES I WANNA MAKE
 //want to take out all the delay() with milliseconds because then it is not blocking and you call the loop() more consistently
 //change the way the arm movements are called when the rocks are being deposited into the milk bottle
@@ -7,7 +9,8 @@
 //manually coding acceleration for the deceleration at the end
 
 #include <AccelStepper.h>
-#include <VarSpeedServo.h> //library which lets you run servos based on position, with a given speed and make it blocking or not
+#include <VarSpeedServoRA4M1.h>
+
 //true is blocking false is non-blocking
 //this is also somethhing i wanted to change, because i dont want blocking calls in the loop(), and i want to link up the servo and stepper simultaneously
 
@@ -32,16 +35,11 @@ float armEndSteps = armStepsPerRev * 0.2; //steps to take arms to finishing posi
 #define driveDP 5    //drive direction pin
 #define driveEP 7   //drive enable pin
 #define driveSP 10   //drive step pin
-const int driveStepsPerRev = 800;   //drive stepper motor steps per revolution
-float driveRevolutions = 6.72;   //revolutions drive stepper moves through
+const int driveStepsPerRev = 1600;   //drive stepper motor steps per revolution
+float driveRevolutions = 8;   //revolutions drive stepper moves through
 float driveSteps = driveStepsPerRev * driveRevolutions * -1;   //steps for drive stepper motor to take
-const int driveSpeed = 4000;  //drive speed (steps per second)
-const int driveAcceleration = 1500;  //drive acceleration (steps per second per second)
-float furtherDriveRevolutions = 0.9; //slower drive section for deposit
-float furtherDriveSteps = driveStepsPerRev * furtherDriveRevolutions * -1;
-float retractSteps = furtherDriveSteps + driveSteps; //how far robot drives back after finishing
-float backwardsRevolutions = driveRevolutions + furtherDriveRevolutions - 0.5;
-float backwardsDriveSteps = backwardsRevolutions * driveStepsPerRev;
+const int driveSpeed = 6000;  //drive speed (steps per second)
+const int driveAcceleration = 6000;  //drive acceleration (steps per second per second)
 
 //EXTRUSION NEMA 23
 #define extrusionDP 8   //extrusion direction pin
@@ -50,8 +48,8 @@ float backwardsDriveSteps = backwardsRevolutions * driveStepsPerRev;
 const int extrusionStepsPerRev = 800 ;  //extrusion stepper motor steps per revolution
 float extrusionRevolutions = 6.45;                                   ;  //revolutions extrusion stepper moves through
 float extrusionSteps = extrusionStepsPerRev * extrusionRevolutions;   //steps for extrusion stepper motor to take
-const int extrusionSpeed = 4000;  //extrusion speed (steps per second)
-const int extrusionAcceleration = 1000;  //extrusion acceleration (steps per second per second)
+const int extrusionSpeed = 7000;//extrusion speed (steps per second)
+const int extrusionAcceleration = 3000;  //extrusion acceleration (steps per second per second)
 
 #define motorInterfaceType 1
 #define onSwitch A4
@@ -65,7 +63,7 @@ AccelStepper arm1Stepper = AccelStepper(motorInterfaceType, arm1SP, arm1DP);   /
 AccelStepper arm2Stepper = AccelStepper(motorInterfaceType, arm2SP, arm2DP);   //arm 2 stepper motor
 AccelStepper driveStepper = AccelStepper(motorInterfaceType, driveSP, driveDP);   //drive stepper motor
 AccelStepper extrusionStepper = AccelStepper(motorInterfaceType, extrusionSP, extrusionDP);   //extrusion stepper motor
-VarSpeedServo scoopServo;
+VarSpeedServoRA4M1 scoopServo;
 
 enum {rotatingDown, halfUp, halfDown, pickRocks, rotatingUp, endScoop, stationary, forward, further, retract, end};
 unsigned char systemState;
@@ -143,10 +141,10 @@ void loop() {
           arm2Stepper.enableOutputs();
           driveStepper.disableOutputs();
           extrusionStepper.disableOutputs();
-          arm1Stepper.setMaxSpeed(4000);
-          arm2Stepper.setMaxSpeed(4000);
-          arm1Stepper.setAcceleration(4000);
-          arm2Stepper.setAcceleration(4000);
+          arm1Stepper.setMaxSpeed(6000);
+          arm2Stepper.setMaxSpeed(6000);
+          arm1Stepper.setAcceleration(6000);
+          arm2Stepper.setAcceleration(6000);
           arm1Stepper.move(-armDownSteps);
           arm2Stepper.move(armDownSteps);
           prevState = systemState;
@@ -158,13 +156,13 @@ void loop() {
       //arms rotate up once in collection box, and servo rotates around to halfway
       case halfUp: 
         if (systemState != prevState) {
-          arm1Stepper.setMaxSpeed(2200);
-          arm2Stepper.setMaxSpeed(2200);
-          arm1Stepper.setAcceleration(2200);
-          arm2Stepper.setAcceleration(2200);
+          arm1Stepper.setMaxSpeed(4000);
+          arm2Stepper.setMaxSpeed(4000);
+          arm1Stepper.setAcceleration(4000);
+          arm2Stepper.setAcceleration(4000);
           arm1Stepper.move(armHalfSteps);
           arm2Stepper.move(-armHalfSteps);
-          scoopServo.write(50, 40, false); 
+          scoopServo.write(50, 45, false); 
           prevState = systemState;
         }
         if (arm1Stepper.distanceToGo() == 0 and arm2Stepper.distanceToGo() == 0) {
@@ -173,9 +171,9 @@ void loop() {
         break;
       //arms rotate down in collection box until limit switch clicked, and servo rotates around to pick up rocks
       case halfDown:
-        scoopServo.write(170, 27, false);
-        arm1Stepper.setSpeed(-400);
-        arm2Stepper.setSpeed(400);
+        scoopServo.write(170, 45, false);
+        arm1Stepper.setSpeed(-3000);
+        arm2Stepper.setSpeed(3000);
         if (collectionLimitState == LOW) {
           arm1Stepper.setSpeed(0);
           arm2Stepper.setSpeed(0);
@@ -184,16 +182,16 @@ void loop() {
         break;
       //tip servo further to collect rocks with small delay to make sure they stay in
       case pickRocks:
-        scoopServo.write(180, 10, true); 
+        scoopServo.write(180, 30, true); 
         systemState = rotatingUp;
         break;
       //rotate arms back up until limit switch clicked and adjust servo as they rotate upwards to level it out
       case rotatingUp:
-        scoopServo.write(110, 27, false);
-        arm1Stepper.setMaxSpeed(1800);
-        arm2Stepper.setMaxSpeed(1800);
-        arm1Stepper.setSpeed(1700);
-        arm2Stepper.setSpeed(-1700);
+        scoopServo.write(110, 40, false);
+        arm1Stepper.setMaxSpeed(4000);
+        arm2Stepper.setMaxSpeed(4000);
+        arm1Stepper.setSpeed(4000);
+        arm2Stepper.setSpeed(-4000);
         //once limit switch clicked tip rocks into the milk bottle
         if (armLimitState == LOW) {
           arm1Stepper.setSpeed(0);
@@ -205,8 +203,8 @@ void loop() {
       //move arms to finishing state
       case endScoop:
         scoopServo.write(100, 40, false);
-        arm1Stepper.setMaxSpeed(4000);
-        arm2Stepper.setMaxSpeed(4000);
+        arm1Stepper.setMaxSpeed(6000);
+        arm2Stepper.setMaxSpeed(6000);
         arm1Stepper.move(-armEndSteps);
         arm2Stepper.move(armEndSteps);
         extrusionStepper.enableOutputs();
@@ -216,7 +214,7 @@ void loop() {
       //drive and extrude forwards
       case stationary:
         extrusionStepper.move(-extrusionSteps);
-        driveStepper.move(driveSteps + furtherDriveSteps);
+        driveStepper.move(driveSteps);
         systemState = forward;
         break;
       case forward:
@@ -228,9 +226,6 @@ void loop() {
         //also not the smoothest, will investigate, changes to slower speed at a certain distance away from hopper so the rocks go in slower
         //cant do this using a setacceleration because then the distances are varied, as you have to use that acceleration to get to the speed-
         //-which changes the distance as this is not accounted for
-        if (driveStepper.distanceToGo() == furtherDriveSteps) {
-          driveStepper.setMaxSpeed(270);
-        }
         //changes speed back to max once deposited but lowkeyjust realised this wasnt needed lmao
         if (driveStepper.distanceToGo() == 0 and extrusionStepper.distanceToGo() == 0) {
           extrusionStepper.setAcceleration(4000);
@@ -242,9 +237,9 @@ void loop() {
       case retract:
         if (driveStepper.distanceToGo() == 0 and extrusionStepper.distanceToGo() == 0) {
           delay(200);
-          driveStepper.setMaxSpeed(4000);
-          driveStepper.setAcceleration(4000);
-          driveStepper.move(backwardsDriveSteps);
+          driveStepper.setMaxSpeed(7000);
+          driveStepper.setAcceleration(7000);
+          driveStepper.move(-driveSteps);
           extrusionStepper.move(extrusionSteps);
           systemState = end;
         }
